@@ -550,7 +550,10 @@ def load_model():
             scaler = joblib.load('scaler.pkl')
             print("✅ Single model and scaler loaded successfully")
         except FileNotFoundError:
-            print("⚠️  Model files not found. Training new ensemble model...")
+            print("⚠️  Model files not found. Training new models...")
+            # First, train the basic model and scaler to ensure fallback is ready
+            train_model()
+            # Then, train the advanced ensemble model
             train_ensemble_model()
 
 def train_model():
