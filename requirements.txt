@@ -7,7 +7,6 @@ Werkzeug==2.3.7
 
 # Database
 psycopg2-binary==2.9.7
-SQLAlchemy==2.0.21
 
 # Authentication
 Authlib==1.2.1
@@ -33,32 +32,8 @@ python-dotenv==1.0.0
 # Image Processing
 Pillow==10.0.0
 
-# Utilities
-uuid==1.30
-threading-utils==0.3
-
-# Development and Testing
-pytest==7.4.2
-pytest-flask==1.2.0
-
-# Email
-smtplib2==0.2.1
-
 # Date and Time
 python-dateutil==2.8.2
-
-# HTTP and Networking
-urllib3==2.0.4
-certifi==2023.7.22
-
-# JSON and Data Handling
-jsonschema==4.19.1
-
-# Security
-cryptography==41.0.4
-
-# Logging
-colorlog==6.7.0
 
 # Production Server
 gunicorn==21.2.0

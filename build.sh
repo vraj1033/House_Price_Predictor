@@ -2,13 +2,19 @@
 # exit on error
 set -o errexit
 
-# Install Python dependencies
-pip install --upgrade pip
+echo "🔧 Starting build process..."
+
+# Upgrade pip and install dependencies
+echo "📦 Installing Python dependencies..."
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 
 # Create necessary directories
+echo "📁 Creating directories..."
 mkdir -p static/uploads
 mkdir -p instance
 
-# Initialize database
-python init_db.py
+# Create a placeholder file to keep uploads directory
+touch static/uploads/.gitkeep
+
+echo "✅ Build completed successfully!"

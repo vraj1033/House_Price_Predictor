@@ -1710,13 +1710,30 @@ def chat_api():
             'error': 'Sorry, I encountered an error. Please try again.'
         })
 
-if __name__ == '__main__':
+def init_app():
+    """Initialize the application"""
     with app.app_context():
-        db.create_all()
-        load_model()
-    
+        try:
+            db.create_all()
+            print("✅ Database tables created successfully")
+        except Exception as e:
+            print(f"⚠️ Database initialization warning: {e}")
+        
+        try:
+            load_model()
+            print("✅ ML model loaded successfully")
+        except Exception as e:
+            print(f"⚠️ Model loading warning: {e}")
+
+# Initialize app when imported (for Gunicorn)
+init_app()
+
+if __name__ == '__main__':
     # Get port from environment variable for production deployment
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.getenv('FLASK_ENV') != 'production'
+    
+    print(f"🚀 Starting Flask app on port {port}")
+    print(f"🔧 Debug mode: {debug_mode}")
     
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
