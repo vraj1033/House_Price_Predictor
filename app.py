@@ -19,6 +19,7 @@ import uuid
 import threading
 from payment_gateway import payment_gateway, get_pro_plan_info, calculate_pro_expiry
 from robust_email_sender import send_payment_confirmation_background
+import json
 # Load environment variables
 load_dotenv()
 
@@ -1422,7 +1423,6 @@ def cv_enhanced_prediction():
         # Get CV analysis data if provided
         cv_analysis = None
         if 'cv_analysis' in request.form:
-            import json
             cv_analysis = json.loads(request.form.get('cv_analysis'))
         
         # Prepare base features
