@@ -22,6 +22,13 @@ from robust_email_sender import send_payment_confirmation_background
 # Load environment variables
 load_dotenv()
 
+# Helper function to get base URL
+def get_base_url():
+    """Get the base URL for the application"""
+    if os.getenv('FLASK_ENV') == 'production':
+        return 'https://house-price-predictor.onrender.com'
+    return 'http://localhost:5000'
+
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your-fallback-secret-key')
 
@@ -1707,4 +1714,9 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         load_model()
-    app.run(debug=True)
+    
+    # Get port from environment variable for production deployment
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.getenv('FLASK_ENV') != 'production'
+    
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
