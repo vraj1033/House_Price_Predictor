@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Assistant - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .chat-container {
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        .chat-input-area {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 20px 20px 5px 20px;
+            max-width: 70%;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-message .message-content {
+            background: white;
+            color: #374151;
+            padding: 1rem 1.5rem;
+            border-radius: 20px 20px 20px 5px;
+            max-width: 70%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .typing-content {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: typingBounce 1.4s ease-in-out infinite both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Mobile responsive navigation - hide text, show only icons */
+        @media (max-width: 768px) {
+            .back-button {
+                padding: 12px;
+                min-width: 48px;
+                justify-content: center;
+            }
+            
+            .back-button .btn-text {
+                display: none;
+            }
+            
+            .back-button i {
+                margin-right: 0 !important;
+                font-size: 18px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .back-button {
+                padding: 10px;
+                min-width: 44px;
+            }
+            
+            .back-button i {
+                font-size: 16px;
+            }
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .quick-action {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .quick-action:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #64748b;
+        }
+
+        .welcome-avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mx-auto chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="flex items-center justify-between">
+                <!-- Left spacer for balance -->
+                <div class="flex-1"></div>
+                
+                <!-- Centered Title Section -->
+                <div class="flex items-center gap-4 flex-1 justify-center">
+                    <div class="avatar ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="text-center">
+                        <h1 class="text-2xl font-bold">AI Chat Assistant</h1>
+                        <div class="flex items-center justify-center gap-2 mt-1">
+                            <div class="status-indicator"></div>
+                            <span class="text-sm opacity-90">Online</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Navigation -->
+                <div class="flex items-center justify-end flex-1">
+                    <button onclick="goBack()" class="back-button">
+                        <i class="fas fa-arrow-left mr-2"></i><span class="btn-text">Back</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="chat-messages">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 text-gray-800">Welcome to AI Chat Assistant!</h2>
+                <p class="text-lg mb-6">I'm here to help you with house price predictions, real estate questions, and market insights.</p>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions justify-center">
+                    <button class="quick-action" onclick="sendQuickMessage('What factors affect house prices?')">
+                        <i class="fas fa-home mr-2"></i>Price Factors
+                    </button>
+                    <button class="quick-action" onclick="sendQuickMessage('How accurate are your predictions?')">
+                        <i class="fas fa-chart-line mr-2"></i>Accuracy
+                    </button>
+                    <button class="quick-action" onclick="sendQuickMessage('Tell me about real estate market trends')">
+                        <i class="fas fa-trending-up mr-2"></i>Market Trends
+                    </button>
+                    <button class="quick-action" onclick="sendQuickMessage('How do I improve my property value?')">
+                        <i class="fas fa-tools mr-2"></i>Property Tips
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="chat-input-area">
+            <div class="flex items-center gap-4">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="chat-input flex-1" 
+                    placeholder="Ask me anything about house prices, real estate, or market trends..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button id="sendButton" onclick="sendMessage()" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <!-- Quick Actions for Input -->
+            <div class="quick-actions">
+                <button class="quick-action" onclick="sendQuickMessage('Predict price for a 3-bedroom house')">
+                    <i class="fas fa-calculator mr-1"></i>Price Prediction
+                </button>
+                <button class="quick-action" onclick="sendQuickMessage('Best neighborhoods to invest in')">
+                    <i class="fas fa-map-marker-alt mr-1"></i>Investment Areas
+                </button>
+                <button class="quick-action" onclick="sendQuickMessage('Current market conditions')">
+                    <i class="fas fa-chart-bar mr-1"></i>Market Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isTyping = false;
+        let messageHistory = [];
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('chatInput').value = message;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+
+            // Clear input
+            input.value = '';
+            
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            try {
+                console.log('Sending message:', message);
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: messageHistory
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    addMessage(data.response, 'ai');
+                    messageHistory.push({
+                        user: message,
+                        ai: data.response
+                    });
+                } else {
+                    addMessage(`Error: ${data.error || 'Unknown error occurred'}`, 'ai');
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                hideTypingIndicator();
+                addMessage('Sorry, I\'m having trouble connecting. Please check your internet connection and try again.', 'ai');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const welcomeSection = messagesContainer.querySelector('.welcome-section');
+            
+            // Remove welcome message on first interaction
+            if (welcomeSection && messageHistory.length === 0 && sender === 'user') {
+                welcomeSection.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => welcomeSection.remove(), 300);
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        ${escapeHtml(text)}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="avatar ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        ${formatAIResponse(text)}
+                    </div>
+                `;
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            if (isTyping) return;
+            isTyping = true;
+
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="ai-avatar" style="width: 32px; height: 32px; font-size: 14px;">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="flex gap-1 ml-3">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                <span class="ml-2 text-gray-600">AI is thinking...</span>
+            `;
+
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            isTyping = false;
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatAIResponse(text) {
+            // Basic formatting for AI responses
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>')
+                .replace(/```(.*?)```/gs, '<code class="bg-gray-100 p-2 rounded block">$1</code>');
+        }
+
+        // Auto-focus on input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chatInput').focus();
+        });
+
+        // Add CSS for fade out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

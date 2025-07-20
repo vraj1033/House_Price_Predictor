@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        .background-slide.active {
+            opacity: 1;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .dashboard-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Mobile responsive navigation - hide text, show only icons */
+        @media (max-width: 768px) {
+            .dashboard-button {
+                padding: 10px;
+                min-width: 44px;
+                justify-content: center;
+                margin-right: 8px;
+            }
+            
+            .dashboard-button .btn-text {
+                display: none;
+            }
+            
+            .dashboard-button i {
+                margin-right: 0 !important;
+                font-size: 18px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .dashboard-button {
+                padding: 8px;
+                min-width: 40px;
+                margin-right: 6px;
+            }
+            
+            .dashboard-button i {
+                font-size: 16px;
+            }
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-menu-item {
+            display: block;
+            padding: 12px 16px;
+            color: #374151;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 4px;
+        }
+
+        .profile-menu-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .profile-menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        .profile-avatar:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-button {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            padding: 4px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-name {
+            display: none;
+        }
+
+        .profile-chevron {
+            display: none;
+        }
+
+        .profile-button:hover .profile-name {
+            display: block;
+            padding: 0 12px 0 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .profile-button:hover .profile-chevron {
+            display: block;
+            padding-right: 8px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .profile-button:hover {
+            border-radius: 25px;
+        }
+    </style>
+</head>
+<bo dy class="min-h-screen">
+    <!-- Background Container -->
+    <div class="background-container">
+        <div class="background-slide active"
+            style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80');">
+        </div>
+        <div class="background-overlay"></div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="relative mb-8">
+                <!-- Chat Icon - Positioned absolutely in top left -->
+                <div class="absolute top-0 left-0 z-10">
+                    <button onclick="window.location.href='/chat'" class="dashboard-button">
+                        <i class="fas fa-comments mr-2"></i><span class="btn-text">AI Chat</span>
+                    </button>
+                </div>
+
+                <!-- Main Header Row - Title and Navigation on same line -->
+                <div class="flex items-center justify-between">
+                    <!-- Left spacer for balance -->
+                    <div class="flex-1"></div>
+
+                    <!-- Centered Title -->
+                    <div class="text-center flex-1">
+                        <h1 class="text-4xl font-bold text-white mb-2">
+                            <i class="fas fa-chart-line mr-3"></i>Analytics Dashboard
+                        </h1>
+                        <p class="text-xl text-white opacity-90">Track your prediction history and insights</p>
+                    </div>
+
+                    <!-- Right Navigation & Profile -->
+                    <div class="flex items-center justify-end flex-1">
+                        <!-- Home Button -->
+                        <button onclick="window.location.href='/'" class="dashboard-button">
+                            <i class="fas fa-home mr-2"></i><span class="btn-text">Predictor</span>
+                        </button>
+
+                        <!-- Map Button -->
+                        <button onclick="window.location.href='/map'" class="dashboard-button">
+                            <i class="fas fa-map-marker-alt mr-2"></i><span class="btn-text">Map</span>
+                        </button>
+
+                        <!-- Profile Dropdown -->
+                        <div class="profile-dropdown">
+                            <button class="profile-button" onclick="toggleProfileMenu()">
+                                {% if user.avatar_url %}
+                                <img src="{{ user.avatar_url }}" alt="Profile" class="profile-avatar">
+                                {% else %}
+                                <div
+                                    class="profile-avatar bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-sm"></i>
+                                </div>
+                                {% endif %}
+                                <span class="profile-name">{{ user.name }}</span>
+                                <i class="fas fa-chevron-down profile-chevron"></i>
+                            </button>
+
+                            <div class="profile-menu" id="profileMenu">
+                                <div class="px-4 py-3 border-b border-gray-200">
+                                    <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.email }}</p>
+                                </div>
+
+                                <a href="/" class="profile-menu-item">
+                                    <i class="fas fa-home mr-3"></i>
+                                    Predictor
+                                </a>
+
+                                <a href="/history" class="profile-menu-item">
+                                    <i class="fas fa-history mr-3"></i>
+                                    History
+                                </a>
+
+                                <div class="border-t border-gray-200 mt-2 pt-2">
+                                    <a href="/logout" class="profile-menu-item danger">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>
+                                        Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+                <p class="text-white text-lg">Loading analytics data...</p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent" class="hidden">
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white opacity-75 text-sm font-medium">Total Predictions</p>
+                                <p id="totalPredictions" class="text-3xl font-bold text-white">0</p>
+                            </div>
+                            <div class="bg-blue-500 bg-opacity-20 rounded-full p-3">
+                                <i class="fas fa-calculator text-blue-300 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white opacity-75 text-sm font-medium">Average Price</p>
+                                <p id="avgPrice" class="text-3xl font-bold text-white">$0</p>
+                            </div>
+                            <div class="bg-green-500 bg-opacity-20 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-green-300 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white opacity-75 text-sm font-medium">Highest Price</p>
+                                <p id="maxPrice" class="text-3xl font-bold text-white">$0</p>
+                            </div>
+                            <div class="bg-purple-500 bg-opacity-20 rounded-full p-3">
+                                <i class="fas fa-arrow-up text-purple-300 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white opacity-75 text-sm font-medium">Recent Activity</p>
+                                <p id="recentCount" class="text-3xl font-bold text-white">0</p>
+                            </div>
+                            <div class="bg-yellow-500 bg-opacity-20 rounded-full p-3">
+                                <i class="fas fa-clock text-yellow-300 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Price Trend Chart -->
+                    <div class="chart-container rounded-2xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">
+                            <i class="fas fa-chart-line mr-2"></i>Price Trends
+                        </h3>
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <canvas id="trendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Prediction Distribution -->
+                    <div class="chart-container rounded-2xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">
+                            <i class="fas fa-chart-pie mr-2"></i>Price Distribution
+                        </h3>
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <canvas id="distributionChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Predictions -->
+                <div class="glass-effect rounded-2xl p-6">
+                    <h3 class="text-2xl font-bold text-white mb-6">
+                        <i class="fas fa-history mr-2"></i>Recent Predictions
+                    </h3>
+                    <div id="recentPredictions" class="space-y-4">
+                        <!-- Recent predictions will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden text-center py-12">
+                <div class="text-red-400 mb-4">
+                    <i class="fas fa-exclamation-triangle text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Error Loading Dashboard</h3>
+                <p class="text-white opacity-75 mb-4">Unable to load your analytics data</p>
+                <button onclick="loadDashboardData()"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-refresh mr-2"></i>Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Background slideshow functionality
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.background-slide');
+        const totalSlides = slides.length;
+
+        function changeBackground() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % totalSlides;
+            slides[currentSlide].classList.add('active');
+        }
+
+        setInterval(changeBackground, 5000);
+
+        // Profile dropdown functionality
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.querySelector('.profile-dropdown');
+            const menu = document.getElementById('profileMenu');
+
+            if (dropdown && !dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Dashboard functionality
+        let trendChart = null;
+        let distributionChart = null;
+
+        async function loadDashboardData() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('dashboardContent').classList.add('hidden');
+                document.getElementById('errorState').classList.add('hidden');
+
+                console.log('Loading dashboard data...');
+                const response = await fetch('/api/dashboard-data');
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Dashboard data:', data);
+
+                if (data.success) {
+                    // Update statistics
+                    document.getElementById('totalPredictions').textContent = data.stats.total_predictions;
+                    document.getElementById('avgPrice').textContent = data.stats.avg_price;
+                    document.getElementById('maxPrice').textContent = data.stats.max_price;
+                    document.getElementById('recentCount').textContent = data.stats.recent_count;
+
+                    // Create charts (only if we have data)
+                    if (data.trend_data && data.trend_data.length > 0) {
+                        createTrendChart(data.trend_data);
+                        createDistributionChart(data.trend_data);
+                    } else {
+                        // Show empty state for charts
+                        showEmptyCharts();
+                    }
+
+                    // Display recent predictions
+                    displayRecentPredictions(data.recent_predictions || []);
+
+                    // Show dashboard content
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('dashboardContent').classList.remove('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to load dashboard data');
+                }
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+
+                // Show error details in the error state
+                const errorState = document.getElementById('errorState');
+                errorState.innerHTML = `
+        <div class="text-red-400 mb-4">
+            <i class="fas fa-exclamation-triangle text-4xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Error Loading Dashboard</h3>
+        <p class="text-white opacity-75 mb-4">${error.message}</p>
+        <button onclick="loadDashboardData()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+            <i class="fas fa-refresh mr-2"></i>Try Again
+        </button>
+        `;
+            }
+        }
+
+        function showEmptyCharts() {
+            // Show empty state for trend chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        label: 'No Predictions Yet',
+                        data: [0],
+                        borderColor: 'rgba(156, 163, 175, 0.5)',
+                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Show empty state for distribution chart
+            const distCtx = document.getElementById('distributionChart').getContext('2d');
+            if (distributionChart) distributionChart.destroy();
+
+            distributionChart = new Chart(distCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['rgba(156, 163, 175, 0.5)'],
+                        borderColor: ['rgba(156, 163, 175, 1)'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'white', padding: 20 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTrendChart(trendData) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            const labels = trendData.map(item => item.month);
+            const prices = trendData.map(item => item.avg_price);
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Price',
+                        data: prices,
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                color: 'white',
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createDistributionChart(trendData) {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+
+            // Create price ranges for distribution
+            const priceRanges = ['$0-300K', '$300-500K', '$500-700K', '$700K+'];
+            const rangeCounts = [0, 0, 0, 0];
+
+            trendData.forEach(item => {
+                const price = item.avg_price;
+                if (price < 300000) rangeCounts[0] += item.count; else if (price < 500000) rangeCounts[1] += item.count; else if
+                    (price < 700000) rangeCounts[2] += item.count; else rangeCounts[3] += item.count;
+            }); distributionChart = new
+                Chart(ctx, {
+                    type: 'doughnut', data: {
+                        labels: priceRanges, datasets: [{
+                            data: rangeCounts,
+                            backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(59, 130, 246, 0.8)', 'rgba(34, 197, 94, 0.8)'
+                                , 'rgba(168, 85, 247, 0.8)'], borderColor: ['rgba(239, 68, 68, 1)', 'rgba(59, 130, 246, 1)'
+                                    , 'rgba(34, 197, 94, 1)', 'rgba(168, 85, 247, 1)'], borderWidth: 2
+                        }]
+                    }, options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom', labels: { color: 'white', padding: 20 } } }
+                    }
+                });
+        } function
+            displayRecentPredictions(predictions) {
+            const container = document.getElementById('recentPredictions'); if
+                (predictions.length === 0) {
+                container.innerHTML = ` <div class="text-center py-8">
+            <i class="fas fa-chart-line text-4xl text-white opacity-50 mb-4"></i>
+            <p class="text-white opacity-75">No predictions yet</p>
+            <p class="text-white opacity-50 text-sm">Start making predictions to see your analytics</p>
+            </div>
+            `;
+                return;
+            }
+
+            container.innerHTML = predictions.map(pred => `
+            <div
+                class="bg-white bg-opacity-10 rounded-xl p-4 flex items-center justify-between hover:bg-opacity-15 transition-all duration-300">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-500 bg-opacity-20 rounded-full p-3">
+                        <i class="fas fa-home text-blue-300"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold">${pred.price}</p>
+                        <p class="text-white opacity-75 text-sm">${pred.bedrooms} bed, ${pred.bathrooms} bath •
+                            ${pred.sqft_living.toLocaleString()} sq ft</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-white opacity-75 text-sm">${pred.date}</p>
+                </div>
+            </div>
+            `).join('');
+        }
+
+        // Load dashboard data when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+    </body>
+
+</html>

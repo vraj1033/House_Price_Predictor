@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-animation {
+            animation: successPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container"></div>
+    
+    <div class="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div class="glass-effect rounded-2xl p-12 text-center max-w-md w-full">
+            <!-- Success Icon -->
+            <div class="success-animation text-green-400 mb-6">
+                <i class="fas fa-check-circle text-8xl"></i>
+            </div>
+
+            <!-- Success Message -->
+            <h1 class="text-3xl font-bold text-white mb-4">
+                Payment Successful! 🎉
+            </h1>
+            
+            <p class="text-white opacity-90 mb-6">
+                Congratulations! Your Pro subscription has been activated successfully.
+            </p>
+
+            <!-- Pro Features Unlocked -->
+            <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-semibold text-white mb-3">
+                    <i class="fas fa-crown text-yellow-400 mr-2"></i>
+                    Pro Features Unlocked
+                </h3>
+                <ul class="text-sm text-white opacity-80 space-y-1">
+                    <li><i class="fas fa-check text-green-400 mr-2"></i>Unlimited Predictions</li>
+                    <li><i class="fas fa-check text-green-400 mr-2"></i>Advanced AI Analysis</li>
+                    <li><i class="fas fa-check text-green-400 mr-2"></i>Market Reports</li>
+                    <li><i class="fas fa-check text-green-400 mr-2"></i>Priority Support</li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <a href="/dashboard" class="btn-primary w-full">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Go to Dashboard
+                </a>
+                
+                <a href="/" class="btn-primary w-full bg-opacity-50">
+                    <i class="fas fa-home mr-2"></i>
+                    Start Predicting
+                </a>
+            </div>
+
+            <!-- Thank You Note -->
+            <p class="text-white opacity-70 text-sm mt-6">
+                Thank you for choosing Pro! We're excited to help you make better property investment decisions.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect to dashboard after 10 seconds
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 10000);
+
+        // Show countdown
+        let countdown = 10;
+        const countdownElement = document.createElement('p');
+        countdownElement.className = 'text-white opacity-50 text-xs mt-4';
+        countdownElement.innerHTML = `Redirecting to dashboard in ${countdown} seconds...`;
+        document.querySelector('.glass-effect').appendChild(countdownElement);
+
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownElement.innerHTML = `Redirecting to dashboard in ${countdown} seconds...`;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js - Free OpenStreetMap Alternative -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        .background-slide.active {
+            opacity: 1;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            z-index: 1;
+        }
+
+        /* Smooth Page Entrance Animations */
+        .page-container {
+            opacity: 0;
+            transform: scale(0.98);
+            animation: smoothPageEnter 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(40px);
+            animation: smoothFadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            animation: smoothFadeInLeft 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(40px);
+            animation: smoothFadeInRight 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .fade-in-scale {
+            opacity: 0;
+            transform: scale(0.85);
+            animation: smoothFadeInScale 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .fade-in-blur {
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(20px);
+            animation: smoothFadeInBlur 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Enhanced Staggered Delays */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-800 { animation-delay: 0.8s; }
+
+        /* Smooth Animation Keyframes */
+        @keyframes smoothPageEnter {
+            0% {
+                opacity: 0;
+                transform: scale(0.98);
+                filter: blur(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes smoothFadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes smoothFadeInLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes smoothFadeInRight {
+            0% {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes smoothFadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes smoothFadeInBlur {
+            0% {
+                opacity: 0;
+                filter: blur(10px);
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0px);
+                transform: translateY(0);
+            }
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        /* Preload images */
+        .preload-images {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Profile dropdown styles */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-menu-item {
+            display: block;
+            padding: 12px 16px;
+            color: #374151;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 4px;
+        }
+
+        .profile-menu-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .profile-menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+            object-fit: cover;
+        }
+
+        .profile-avatar:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-button {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            padding: 4px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-name {
+            display: none;
+        }
+
+        .profile-chevron {
+            display: none;
+        }
+
+        /* Show name and chevron on hover */
+        .profile-button:hover .profile-name {
+            display: block;
+            padding: 0 12px 0 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .profile-button:hover .profile-chevron {
+            display: block;
+            padding-right: 8px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .profile-button:hover {
+            border-radius: 25px;
+        }
+
+        .dashboard-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .dashboard-button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Mobile responsive navigation - hide text, show only icons */
+        @media (max-width: 768px) {
+            .dashboard-button {
+                padding: 10px;
+                min-width: 44px;
+                justify-content: center;
+                margin-right: 8px;
+            }
+            
+            .dashboard-button .btn-text {
+                display: none;
+            }
+            
+            .dashboard-button i {
+                margin-right: 0 !important;
+                font-size: 18px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .dashboard-button {
+                padding: 8px;
+                min-width: 40px;
+                margin-right: 6px;
+            }
+            
+            .dashboard-button i {
+                font-size: 16px;
+            }
+        }
+
+        /* Enhanced Title Styles */
+        .main-title {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 25%, #e0f2fe 50%, #bae6fd 75%, #7dd3fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(125, 211, 252, 0.2), rgba(59, 130, 246, 0.1));
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .main-title:hover::before {
+            opacity: 1;
+        }
+
+        .title-icon {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.4));
+            animation: float-icon 3s ease-in-out infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes float-icon {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-5px) rotate(2deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-3px) rotate(-2deg);
+            }
+        }
+
+        .subtitle {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0.9) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+            position: relative;
+            animation: subtle-glow 4s ease-in-out infinite;
+        }
+
+        @keyframes subtle-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+            }
+
+            50% {
+                text-shadow: 0 2px 20px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .title-container {
+            position: relative;
+            padding: 20px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .title-container:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .title-decoration {
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px;
+            animation: decoration-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes decoration-pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                width: 100px;
+            }
+
+            50% {
+                opacity: 1;
+                width: 150px;
+            }
+        }
+
+        /* Title and Subtitle Animations */
+        .title-animate {
+            animation: titleSlideIn 1.2s ease-out forwards, titleGlow 3s ease-in-out infinite 1.5s;
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        .subtitle-animate {
+            animation: subtitleFadeIn 1.5s ease-out 0.5s forwards, subtitleFloat 4s ease-in-out infinite 2s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .icon-bounce {
+            animation: iconBounce 2s ease-in-out infinite 2s;
+        }
+
+        .title-text {
+            display: inline-block;
+            animation: textShimmer 3s ease-in-out infinite 3s;
+        }
+
+        @keyframes titleSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes titleGlow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+
+            50% {
+                text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(79, 172, 254, 0.4);
+            }
+        }
+
+        @keyframes subtitleFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes subtitleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+
+        @keyframes iconBounce {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(5deg) scale(1.1);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(0deg) scale(1.15);
+            }
+
+            75% {
+                transform: translateY(-5px) rotate(-5deg) scale(1.05);
+            }
+        }
+
+        @keyframes textShimmer {
+
+            0%,
+            100% {
+                background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 50%, #ffffff 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            50% {
+                background: linear-gradient(90deg, #7dd3fc 0%, #ffffff 25%, #bae6fd 50%, #ffffff 75%, #7dd3fc 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+        }
+
+        /* Hover effects for enhanced interactivity */
+        .title-animate:hover {
+            animation-play-state: paused;
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
+        .subtitle-animate:hover {
+            animation-play-state: paused;
+            transform: translateY(-2px);
+            transition: transform 0.3s ease;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .title-animate {
+                font-size: 2.5rem;
+            }
+
+            @keyframes titleSlideIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(-20px) scale(0.95);
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen page-container">
+    <!-- Background Container -->
+    <div class="background-container">
+        <div class="background-slide active"
+            style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80');">
+        </div>
+        <div class="background-slide"
+            style="background-image: url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80');">
+        </div>
+        <div class="background-overlay"></div>
+    </div>
+
+    <!-- Preload Images -->
+    <div class="preload-images">
+        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+            alt="preload">
+        <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+            alt="preload">
+        <img src="https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+            alt="preload">
+        <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+            alt="preload">
+        <img src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80"
+            alt="preload">
+        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80"
+            alt="preload">
+    </div>
+
+    <div class="content-wrapper">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="relative mb-12">
+                <!-- Centered Title -->
+                <div class="text-center mb-8 fade-in-up delay-100">
+                    <h1 class="text-5xl font-bold text-white mb-4 title-animate">
+                        <i class="fas fa-home mr-4 icon-bounce"></i><span class="title-text">House Price
+                            Predictor</span>
+                    </h1>
+                    <p class="text-xl text-white opacity-90 subtitle-animate">Get instant price predictions using AI</p>
+                </div>
+
+                <!-- Left Navigation - Positioned absolutely in top left -->
+                <div class="absolute top-0 left-0 z-10 flex gap-3">
+                    <button onclick="window.location.href='/chat'" class="dashboard-button">
+                        <i class="fas fa-comments mr-2"></i><span class="btn-text">AI Chat</span>
+                    </button>
+                    <button onclick="window.location.href='/photo-analyzer'" class="dashboard-button">
+                        <i class="fas fa-camera mr-2"></i><span class="btn-text">Photo Analyzer</span>
+                    </button>
+                </div>
+
+                <!-- Navigation - Positioned absolutely in top right -->
+                <div class="absolute top-0 right-0 z-10 fade-in-right delay-200">
+                    {% if user %}
+                    <div class="flex items-center">
+                        <!-- Dashboard Button -->
+                        <button onclick="window.location.href='/dashboard'" class="dashboard-button">
+                            <i class="fas fa-chart-line mr-2"></i><span class="btn-text">Dashboard</span>
+                        </button>
+
+                        <!-- Map Button -->
+                        <button onclick="window.location.href='/map'" class="dashboard-button">
+                            <i class="fas fa-map-marker-alt mr-2"></i><span class="btn-text">Map</span>
+                        </button>
+
+                        <!-- Pro Plan Button -->
+                        {% if not user.is_pro_user() %}
+                        <button onclick="window.location.href='/pro-plan'" class="dashboard-button" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-color: rgba(251, 191, 36, 0.4);">
+                            <i class="fas fa-crown mr-2"></i><span class="btn-text">Go Pro</span>
+                        </button>
+                        {% else %}
+                        <button onclick="window.location.href='/pro-plan'" class="dashboard-button" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: rgba(16, 185, 129, 0.4);">
+                            <i class="fas fa-crown mr-2"></i><span class="btn-text">Pro Active</span>
+                        </button>
+                        {% endif %}
+
+                        <!-- Profile Dropdown -->
+                        <div class="profile-dropdown">
+                            <button class="profile-button" onclick="toggleProfileMenu()">
+                                {% if user.avatar_url %}
+                                <img src="{{ user.avatar_url }}" alt="Profile" class="profile-avatar">
+                                {% else %}
+                                <div
+                                    class="profile-avatar bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-sm"></i>
+                                </div>
+                                {% endif %}
+                                <span class="profile-name">{{ user.name }}</span>
+                                <i class="fas fa-chevron-down profile-chevron"></i>
+                            </button>
+
+                            <div class="profile-menu" id="profileMenu">
+                                <div class="px-4 py-3 border-b border-gray-200">
+                                    <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
+                                    <p class="text-sm text-gray-500">{{ user.email }}</p>
+                                </div>
+
+                                <a href="/dashboard" class="profile-menu-item">
+                                    <i class="fas fa-chart-line mr-3"></i>
+                                    Analytics Dashboard
+                                </a>
+
+                                <a href="/history" class="profile-menu-item">
+                                    <i class="fas fa-history mr-3"></i>
+                                    Prediction History
+                                </a>
+
+                                <a href="#" onclick="showUserStats()" class="profile-menu-item">
+                                    <i class="fas fa-chart-bar mr-3"></i>
+                                    My Statistics
+                                </a>
+
+
+
+                                <a href="#" onclick="showSettings()" class="profile-menu-item">
+                                    <i class="fas fa-cog mr-3"></i>
+                                    Settings
+                                </a>
+
+                                <div class="border-t border-gray-200 mt-2 pt-2">
+                                    <a href="/logout" class="profile-menu-item danger">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>
+                                        Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Demo mode indicator -->
+                    <div class="text-right">
+                        <div class="bg-yellow-500 bg-opacity-20 border border-yellow-400 rounded-lg px-4 py-2">
+                            <p class="text-yellow-200 text-sm font-medium">
+                                <i class="fas fa-play mr-2"></i>Demo Mode
+                            </p>
+                            <a href="/auth" class="text-yellow-300 hover:text-yellow-100 text-xs underline">
+                                Login to save predictions
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+
+
+                <div class="max-w-4xl mx-auto">
+                    <div class="glass-effect rounded-3xl p-8 shadow-2xl fade-in-scale delay-300">
+                        <form id="predictionForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Bedrooms -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-bed mr-2"></i>Bedrooms
+                                    </label>
+                                    <input type="number" name="bedrooms" min="1" max="10" value="3"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Number of bedrooms">
+                                </div>
+
+                                <!-- Bathrooms -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-bath mr-2"></i>Bathrooms
+                                    </label>
+                                    <input type="number" name="bathrooms" min="1" max="10" step="0.5" value="2"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Number of bathrooms">
+                                </div>
+
+                                <!-- Living Space -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-ruler-combined mr-2"></i>Living Space (sq ft)
+                                    </label>
+                                    <input type="number" name="sqft_living" min="500" max="10000" value="2000"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Square feet of living space">
+                                </div>
+
+                                <!-- Lot Size -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-map mr-2"></i>Lot Size (sq ft)
+                                    </label>
+                                    <input type="number" name="sqft_lot" min="1000" max="50000" value="8000"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Square feet of lot">
+                                </div>
+
+                                <!-- Floors -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-layer-group mr-2"></i>Floors
+                                    </label>
+                                    <select name="floors"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white input-focus transition-all duration-300">
+                                        <option value="1">1 Floor</option>
+                                        <option value="1.5">1.5 Floors</option>
+                                        <option value="2" selected>2 Floors</option>
+                                        <option value="2.5">2.5 Floors</option>
+                                        <option value="3">3 Floors</option>
+                                    </select>
+                                </div>
+
+                                <!-- Waterfront -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-water mr-2"></i>Waterfront
+                                    </label>
+                                    <select name="waterfront"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white input-focus transition-all duration-300">
+                                        <option value="0" selected>No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+
+                                <!-- View -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-eye mr-2"></i>View Rating (0-4)
+                                    </label>
+                                    <input type="number" name="view" min="0" max="4" value="2"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="View quality rating">
+                                </div>
+
+                                <!-- Condition -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-tools mr-2"></i>Condition (1-5)
+                                    </label>
+                                    <input type="number" name="condition" min="1" max="5" value="3"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="House condition rating">
+                                </div>
+
+                                <!-- Grade -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-star mr-2"></i>Grade (3-12)
+                                    </label>
+                                    <input type="number" name="grade" min="3" max="12" value="7"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Construction grade">
+                                </div>
+
+                                <!-- Year Built -->
+                                <div class="space-y-2">
+                                    <label class="block text-white font-semibold text-lg">
+                                        <i class="fas fa-calendar mr-2"></i>Year Built
+                                    </label>
+                                    <input type="number" name="yr_built" min="1900" max="2023" value="2000"
+                                        class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
+                                        placeholder="Year the house was built">
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="text-center mt-8">
+                                <button type="submit"
+                                    class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all duration-300">
+                                    <i class="fas fa-calculator mr-3"></i>Predict Price
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Loading Spinner -->
+                        <div id="loading" class="hidden text-center mt-8">
+                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                            <p class="text-white mt-4">Calculating prediction...</p>
+                        </div>
+
+                        <!-- Prediction Result -->
+                        <div id="result" class="hidden mt-8">
+                            <div class="prediction-card rounded-2xl p-8 text-center shadow-xl">
+                                <h2 class="text-3xl font-bold text-white mb-4">
+                                    <i class="fas fa-dollar-sign mr-2"></i>AI Ensemble Prediction
+                                </h2>
+                                <div id="prediction" class="text-5xl font-bold text-white mb-4"></div>
+                                
+                                <!-- Model Type and Confidence -->
+                                <div class="flex justify-center items-center gap-4 mb-6">
+                                    <div id="modelType" class="bg-blue-500 bg-opacity-30 px-4 py-2 rounded-full">
+                                        <i class="fas fa-brain mr-2"></i>
+                                        <span class="text-white font-semibold">Multi-Model AI</span>
+                                    </div>
+                                    <div id="confidenceScore" class="bg-green-500 bg-opacity-30 px-4 py-2 rounded-full">
+                                        <i class="fas fa-check-circle mr-2"></i>
+                                        <span class="text-white font-semibold">Confidence: 85%</span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-white opacity-90 mb-6">Powered by 10 advanced ML models working together</p>
+                                
+                                <!-- Ensemble Details Toggle -->
+                                <button id="toggleEnsembleDetails" onclick="toggleEnsembleDetails()" 
+                                        class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 mb-6">
+                                    <i class="fas fa-cogs mr-2"></i>View Model Details
+                                </button>
+
+                                <!-- Download Options -->
+                                <div class="flex flex-wrap justify-center gap-4 mb-6">
+                                    <button onclick="downloadCSV()"
+                                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                        <i class="fas fa-file-csv mr-2"></i>Download CSV
+                                    </button>
+                                    <button onclick="downloadPDF()"
+                                        class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                        <i class="fas fa-file-pdf mr-2"></i>Download PDF
+                                    </button>
+                                    <button onclick="showCharts()"
+                                        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                                        <i class="fas fa-chart-bar mr-2"></i>View Charts
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Ensemble Model Details Section -->
+                            <div id="ensembleDetails" class="hidden mt-6">
+                                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                                    <h3 class="text-2xl font-bold text-white mb-6 text-center">
+                                        <i class="fas fa-network-wired mr-2"></i>Multi-Model Ensemble Analysis
+                                    </h3>
+                                    
+                                    <!-- Model Contributions -->
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                                            <h4 class="text-lg font-semibold text-white mb-4 text-center">
+                                                <i class="fas fa-balance-scale mr-2"></i>Model Contributions
+                                            </h4>
+                                            <div id="modelContributions" class="space-y-3">
+                                                <!-- Model contributions will be populated here -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                                            <h4 class="text-lg font-semibold text-white mb-4 text-center">
+                                                <i class="fas fa-chart-pie mr-2"></i>Model Weights
+                                            </h4>
+                                            <canvas id="modelWeightsChart" width="300" height="300"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Ensemble Statistics -->
+                                    <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                                        <h4 class="text-lg font-semibold text-white mb-4 text-center">
+                                            <i class="fas fa-chart-line mr-2"></i>Ensemble Performance
+                                        </h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                            <div class="bg-blue-500 bg-opacity-30 rounded-lg p-4">
+                                                <div class="text-2xl font-bold text-white mb-2">10</div>
+                                                <div class="text-white opacity-90">AI Models</div>
+                                            </div>
+                                            <div class="bg-green-500 bg-opacity-30 rounded-lg p-4">
+                                                <div id="ensembleAccuracy" class="text-2xl font-bold text-white mb-2">92%</div>
+                                                <div class="text-white opacity-90">Accuracy</div>
+                                            </div>
+                                            <div class="bg-purple-500 bg-opacity-30 rounded-lg p-4">
+                                                <div class="text-2xl font-bold text-white mb-2">±5%</div>
+                                                <div class="text-white opacity-90">Error Range</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Section -->
+                            <div id="chartsSection" class="hidden mt-8">
+                                <div class="glass-effect rounded-2xl p-6 shadow-xl">
+                                    <h3 class="text-2xl font-bold text-white mb-6 text-center">
+                                        <i class="fas fa-chart-line mr-2"></i>Property Analysis
+                                    </h3>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <!-- Features Chart -->
+                                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                                            <h4 class="text-lg font-semibold text-white mb-4 text-center">Property
+                                                Features
+                                            </h4>
+                                            <canvas id="featuresChart" width="400" height="300"></canvas>
+                                        </div>
+
+                                        <!-- Price Comparison Chart -->
+                                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                                            <h4 class="text-lg font-semibold text-white mb-4 text-center">Price
+                                                Comparison
+                                            </h4>
+                                            <canvas id="priceChart" width="400" height="300"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- Property Summary -->
+                                    <div class="mt-6 bg-white bg-opacity-10 rounded-xl p-4">
+                                        <h4 class="text-lg font-semibold text-white mb-4 text-center">Property Summary
+                                        </h4>
+                                        <div id="propertySummary"
+                                            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                                            <!-- Summary will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="error" class="hidden mt-8">
+                            <div class="bg-red-500 bg-opacity-20 border border-red-400 rounded-2xl p-6 text-center">
+                                <h3 class="text-xl font-bold text-red-200 mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Error
+                                </h3>
+                                <p id="errorMessage" class="text-red-200"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <script>
+            // Background slideshow functionality
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.background-slide');
+            const totalSlides = slides.length;
+
+            function changeBackground() {
+                // Remove active class from current slide
+                slides[currentSlide].classList.remove('active');
+
+                // Move to next slide
+                currentSlide = (currentSlide + 1) % totalSlides;
+
+                // Add active class to new slide
+                slides[currentSlide].classList.add('active');
+            }
+
+            // Change background every 5 seconds
+            setInterval(changeBackground, 5000);
+
+            // Preload all images for smooth transitions
+            function preloadImages() {
+                const imageUrls = [
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                    'https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                    'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80',
+                    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80'
+                ];
+
+                imageUrls.forEach(url => {
+                    const img = new Image();
+                    img.src = url;
+                });
+            }
+
+            // Initialize preloading when page loads
+            window.addEventListener('load', preloadImages);
+
+
+
+            // Profile dropdown functionality
+            function toggleProfileMenu() {
+                const menu = document.getElementById('profileMenu');
+                menu.classList.toggle('show');
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (event) {
+                const dropdown = document.querySelector('.profile-dropdown');
+                const menu = document.getElementById('profileMenu');
+
+                if (dropdown && !dropdown.contains(event.target)) {
+                    menu.classList.remove('show');
+                }
+            });
+
+            // Profile menu functions
+            async function showUserStats() {
+                try {
+                    const response = await fetch('/history');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const totalPredictions = data.predictions.length;
+                        const avgPrice = data.predictions.length > 0
+                            ? data.predictions.reduce((sum, p) => sum + parseFloat(p.predicted_price.replace(/[$,]/g, '')), 0) /
+                            data.predictions.length
+                            : 0;
+
+                        alert(`Your Statistics:\n\nTotal Predictions: ${totalPredictions}\nAverage Predicted Price:
+    $${avgPrice.toLocaleString()}`);
+                    } else {
+                        alert('Unable to load statistics');
+                    }
+                } catch (error) {
+                    alert('Error loading statistics');
+                }
+
+                // Close dropdown
+                document.getElementById('profileMenu').classList.remove('show');
+            }
+
+            function showSettings() {
+                alert('Settings feature coming soon!');
+                document.getElementById('profileMenu').classList.remove('show');
+            }
+
+            // Photo Upload Functions
+            let selectedFile = null;
+
+            function showPhotoUpload() {
+                // Simple version to test if modal shows
+                const modal = document.getElementById('photoUploadModal');
+                const profileMenu = document.getElementById('profileMenu');
+
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+
+                if (profileMenu) {
+                    profileMenu.classList.remove('show');
+                }
+
+                // Initialize the modal functionality
+                initializePhotoUpload();
+            }
+
+            function initializePhotoUpload() {
+                // Reset modal state
+                selectedFile = null;
+
+                const photoPreview = document.getElementById('photoPreview');
+                const uploadProgress = document.getElementById('uploadProgress');
+                const uploadButton = document.getElementById('uploadButton');
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+
+                if (photoPreview) photoPreview.classList.add('hidden');
+                if (uploadProgress) uploadProgress.classList.add('hidden');
+                if (uploadButton) uploadButton.disabled = true;
+                if (progressBar) progressBar.style.width = '0%';
+                if (progressText) progressText.textContent = 'Uploading...';
+
+                // Setup drag and drop
+                setupDragAndDropHandlers();
+            }
+
+            function setupDragAndDropHandlers() {
+                const dropZone = document.getElementById('dropZone');
+                const photoInput = document.getElementById('photoInput');
+
+                if (!dropZone || !photoInput) return;
+
+                // Remove existing event listeners to prevent duplicates
+                dropZone.replaceWith(dropZone.cloneNode(true));
+                photoInput.replaceWith(photoInput.cloneNode(true));
+
+                // Get fresh references
+                const newDropZone = document.getElementById('dropZone');
+                const newPhotoInput = document.getElementById('photoInput');
+
+                // Click to browse
+                newDropZone.addEventListener('click', () => {
+                    newPhotoInput.click();
+                });
+
+                // File input change
+                newPhotoInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleFileSelect(e.target.files[0]);
+                    }
+                });
+
+                // Drag and drop events
+                newDropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    newDropZone.classList.add('border-blue-400');
+                });
+
+                newDropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    newDropZone.classList.remove('border-blue-400');
+                });
+
+                newDropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    newDropZone.classList.remove('border-blue-400');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFileSelect(files[0]);
+                    }
+                });
+            }
+
+            function closePhotoUpload() {
+                document.getElementById('photoUploadModal').classList.add('hidden');
+                resetPhotoUploadModal();
+            }
+
+            function resetPhotoUploadModal() {
+                selectedFile = null;
+                document.getElementById('photoPreview').classList.add('hidden');
+                document.getElementById('uploadProgress').classList.add('hidden');
+                document.getElementById('uploadButton').disabled = true;
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressText').textContent = 'Uploading...';
+            }
+
+            function setupDragAndDrop() {
+                const dropZone = document.getElementById('dropZone');
+                const photoInput = document.getElementById('photoInput');
+
+                // Click to browse
+                dropZone.addEventListener('click', () => {
+                    photoInput.click();
+                });
+
+                // File input change
+                photoInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleFileSelect(e.target.files[0]);
+                    }
+                });
+
+                // Drag and drop events
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('border-blue-400');
+                });
+
+                dropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-blue-400');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-blue-400');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFileSelect(files[0]);
+                    }
+                });
+            }
+
+            function handleFileSelect(file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file (JPG, PNG, GIF)');
+                    return;
+                }
+
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+
+                selectedFile = file;
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('photoPreview').classList.remove('hidden');
+                    document.getElementById('uploadButton').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            async function uploadPhoto() {
+                if (!selectedFile) {
+                    alert('Please select a photo first');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('photo', selectedFile);
+
+                // Show progress
+                document.getElementById('uploadProgress').classList.remove('hidden');
+                document.getElementById('uploadButton').disabled = true;
+
+                try {
+                    const response = await fetch('/api/upload-avatar', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Update progress to 100%
+                        document.getElementById('progressBar').style.width = '100%';
+                        document.getElementById('progressText').textContent = 'Upload complete!';
+
+                        // Update profile images
+                        updateProfileImages(data.avatar_url);
+
+                        // Close modal after delay
+                        setTimeout(() => {
+                            closePhotoUpload();
+                            alert('Profile photo updated successfully!');
+                        }, 1000);
+                    } else {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    alert('Failed to upload photo: ' + error.message);
+                    document.getElementById('uploadProgress').classList.add('hidden');
+                    document.getElementById('uploadButton').disabled = false;
+                }
+            }
+
+            function updateProfileImages(avatarUrl) {
+                // Update all profile images on the page
+                const profileImages = document.querySelectorAll('.profile-avatar');
+                profileImages.forEach(img => {
+                    if (img.tagName === 'IMG') {
+                        img.src = avatarUrl;
+                    }
+                });
+
+                // Update current photo preview in modal
+                document.getElementById('currentPhotoPreview').src = avatarUrl;
+            }
+
+            // Close modal when clicking outside
+            document.addEventListener('click', function (event) {
+                const modal = document.getElementById('photoUploadModal');
+                if (!modal.classList.contains('hidden')) {
+                    const modalContent = modal.querySelector('.glass-effect');
+                    if (modalContent && !modalContent.contains(event.target)) {
+                        closePhotoUpload();
+                    }
+                }
+            });
+
+            // Global variables for current prediction
+            let currentPredictionId = null;
+            let currentPredictionData = null;
+
+            // Form submission functionality
+            document.getElementById('predictionForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                // Show loading, hide results
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('result').classList.add('hidden');
+                document.getElementById('error').classList.add('hidden');
+                document.getElementById('chartsSection').classList.add('hidden');
+
+                // Get form data
+                const formData = new FormData(this);
+
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    // Hide loading
+                    document.getElementById('loading').classList.add('hidden');
+
+                    if (data.success) {
+                        // Store current prediction data
+                        currentPredictionData = {
+                            prediction: data.prediction,
+                            raw_prediction: data.raw_prediction,
+                            features: Object.fromEntries(formData),
+                            model_type: data.model_type,
+                            ensemble_details: data.ensemble_details
+                        };
+
+                        // Show prediction
+                        document.getElementById('prediction').textContent = data.prediction;
+                        
+                        // Update model type and confidence
+                        updateModelInfo(data);
+                        
+                        // Show result
+                        document.getElementById('result').classList.remove('hidden');
+                        
+                        // Update ensemble details if available
+                        if (data.ensemble_details) {
+                            updateEnsembleDetails(data.ensemble_details);
+                        }
+                    } else {
+                        // Show error
+                        document.getElementById('errorMessage').textContent = data.error;
+                        document.getElementById('error').classList.remove('hidden');
+                    }
+                } catch (error) {
+                    // Hide loading
+                    document.getElementById('loading').classList.add('hidden');
+
+                    // Show error
+                    document.getElementById('errorMessage').textContent = 'Network error. Please try again.';
+                    document.getElementById('error').classList.remove('hidden');
+                }
+            });
+
+            // Computer Vision Functions
+            let uploadedImages = [];
+            let cvAnalysisData = null;
+            
+            // Initialize image upload functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const imageInput = document.getElementById('imageInput');
+                const uploadArea = document.getElementById('imageUploadArea');
+                
+                // Handle file input change
+                imageInput.addEventListener('change', handleImageSelection);
+                
+                // Handle drag and drop
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('drop', handleDrop);
+                uploadArea.addEventListener('dragleave', handleDragLeave);
+            });
+            
+            function handleImageSelection(event) {
+                const files = Array.from(event.target.files);
+                processSelectedImages(files);
+            }
+            
+            function handleDragOver(event) {
+                event.preventDefault();
+                event.currentTarget.classList.add('border-blue-400', 'bg-blue-500', 'bg-opacity-10');
+            }
+            
+            function handleDragLeave(event) {
+                event.currentTarget.classList.remove('border-blue-400', 'bg-blue-500', 'bg-opacity-10');
+            }
+            
+            function handleDrop(event) {
+                event.preventDefault();
+                event.currentTarget.classList.remove('border-blue-400', 'bg-blue-500', 'bg-opacity-10');
+                
+                const files = Array.from(event.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+                processSelectedImages(files);
+            }
+            
+            function processSelectedImages(files) {
+                if (files.length === 0) return;
+                
+                uploadedImages = files;
+                displayImagePreviews(files);
+                
+                // Show preview area, hide prompt
+                document.getElementById('uploadPrompt').classList.add('hidden');
+                document.getElementById('imagePreview').classList.remove('hidden');
+            }
+            
+            function displayImagePreviews(files) {
+                const previewGrid = document.getElementById('previewGrid');
+                previewGrid.innerHTML = '';
+                
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'relative bg-white bg-opacity-10 rounded-lg overflow-hidden';
+                        previewDiv.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview ${index + 1}" 
+                                 class="w-full h-32 object-cover">
+                            <div class="absolute top-2 right-2">
+                                <button type="button" onclick="removeImage(${index})" 
+                                        class="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                                    ×
+                                </button>
+                            </div>
+                            <div class="p-2">
+                                <p class="text-white text-xs truncate">${file.name}</p>
+                            </div>
+                        `;
+                        previewGrid.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            function removeImage(index) {
+                uploadedImages.splice(index, 1);
+                
+                if (uploadedImages.length === 0) {
+                    clearImages();
+                } else {
+                    displayImagePreviews(uploadedImages);
+                }
+            }
+            
+            function clearImages() {
+                uploadedImages = [];
+                cvAnalysisData = null;
+                
+                document.getElementById('uploadPrompt').classList.remove('hidden');
+                document.getElementById('imagePreview').classList.add('hidden');
+                document.getElementById('cvAnalysisResults').classList.add('hidden');
+                document.getElementById('imageInput').value = '';
+            }
+            
+            async function analyzeImages() {
+                if (uploadedImages.length === 0) {
+                    alert('Please select images first');
+                    return;
+                }
+                
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                const originalText = analyzeBtn.innerHTML;
+                
+                // Show loading state
+                analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+                analyzeBtn.disabled = true;
+                
+                try {
+                    const formData = new FormData();
+                    
+                    if (uploadedImages.length === 1) {
+                        formData.append('image', uploadedImages[0]);
+                        const response = await fetch('/api/upload-image', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            cvAnalysisData = data.analysis;
+                            displayAnalysisResults(data.analysis);
+                        } else {
+                            throw new Error(data.error);
+                        }
+                    } else {
+                        // Multiple images
+                        uploadedImages.forEach(image => {
+                            formData.append('images', image);
+                        });
+                        
+                        const response = await fetch('/api/analyze-multiple-images', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            cvAnalysisData = data.combined_analysis || data.analysis;
+                            displayAnalysisResults(cvAnalysisData, data.individual_analyses);
+                        } else {
+                            throw new Error(data.error);
+                        }
+                    }
+                    
+                } catch (error) {
+                    alert('Analysis failed: ' + error.message);
+                    console.error('CV Analysis error:', error);
+                } finally {
+                    // Restore button
+                    analyzeBtn.innerHTML = originalText;
+                    analyzeBtn.disabled = false;
+                }
+            }
+            
+            function displayAnalysisResults(analysisData, individualAnalyses = null) {
+                const resultsContent = document.getElementById('cvResultsContent');
+                
+                if (analysisData.error) {
+                    resultsContent.innerHTML = `
+                        <div class="text-red-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Analysis Error: ${analysisData.error}
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    
+                    // Overall scores
+                    if (analysisData.average_quality !== undefined) {
+                        html += `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-400">${(analysisData.average_quality * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Quality Score</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-blue-400">${(analysisData.average_condition * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Condition</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-purple-400">${analysisData.detected_amenities.length}</div>
+                                    <div class="text-white opacity-75 text-sm">Amenities</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-yellow-400">${(analysisData.overall_price_impact * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Price Impact</div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (analysisData.quality_assessment) {
+                        // Single image analysis
+                        const quality = analysisData.quality_assessment.overall_score;
+                        const condition = analysisData.condition_analysis?.condition_score || 0.7;
+                        const amenities = analysisData.amenity_detection?.total_detected || 0;
+                        const priceImpact = analysisData.price_impact_score || 0.5;
+                        
+                        html += `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-400">${(quality * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Quality Score</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-blue-400">${(condition * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Condition</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-purple-400">${amenities}</div>
+                                    <div class="text-white opacity-75 text-sm">Amenities</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-yellow-400">${(priceImpact * 100).toFixed(0)}%</div>
+                                    <div class="text-white opacity-75 text-sm">Price Impact</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Detected features
+                    if (analysisData.detected_amenities && analysisData.detected_amenities.length > 0) {
+                        html += `
+                            <div class="mb-4">
+                                <h5 class="text-white font-semibold mb-2">Detected Premium Features:</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${analysisData.detected_amenities.map(amenity => 
+                                        `<span class="bg-green-500 bg-opacity-30 text-green-200 px-3 py-1 rounded-full text-sm">
+                                            ${amenity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Recommendations
+                    if (analysisData.recommendations && analysisData.recommendations.length > 0) {
+                        html += `
+                            <div class="mb-4">
+                                <h5 class="text-white font-semibold mb-2">AI Recommendations:</h5>
+                                <ul class="text-white opacity-90 text-sm space-y-1">
+                                    ${analysisData.recommendations.slice(0, 3).map(rec => 
+                                        `<li><i class="fas fa-lightbulb mr-2 text-yellow-400"></i>${rec}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    resultsContent.innerHTML = html;
+                }
+                
+                // Show results section
+                document.getElementById('cvAnalysisResults').classList.remove('hidden');
+            }
+
+            // Ensemble Model Functions
+            function updateModelInfo(data) {
+                const modelTypeElement = document.getElementById('modelType');
+                const confidenceElement = document.getElementById('confidenceScore');
+                
+                if (data.model_type === 'ensemble') {
+                    modelTypeElement.innerHTML = '<i class="fas fa-brain mr-2"></i><span class="text-white font-semibold">Multi-Model AI</span>';
+                    modelTypeElement.className = 'bg-purple-500 bg-opacity-30 px-4 py-2 rounded-full';
+                } else {
+                    modelTypeElement.innerHTML = '<i class="fas fa-robot mr-2"></i><span class="text-white font-semibold">Single Model</span>';
+                    modelTypeElement.className = 'bg-blue-500 bg-opacity-30 px-4 py-2 rounded-full';
+                }
+                
+                if (data.ensemble_details && data.ensemble_details.confidence_score) {
+                    const confidence = Math.round(data.ensemble_details.confidence_score);
+                    confidenceElement.innerHTML = `<i class="fas fa-check-circle mr-2"></i><span class="text-white font-semibold">Confidence: ${confidence}%</span>`;
+                    
+                    // Update confidence color based on score
+                    if (confidence >= 90) {
+                        confidenceElement.className = 'bg-green-500 bg-opacity-30 px-4 py-2 rounded-full';
+                    } else if (confidence >= 80) {
+                        confidenceElement.className = 'bg-yellow-500 bg-opacity-30 px-4 py-2 rounded-full';
+                    } else {
+                        confidenceElement.className = 'bg-orange-500 bg-opacity-30 px-4 py-2 rounded-full';
+                    }
+                }
+            }
+            
+            function updateEnsembleDetails(ensembleDetails) {
+                if (!ensembleDetails || !ensembleDetails.model_contributions) return;
+                
+                const contributionsContainer = document.getElementById('modelContributions');
+                contributionsContainer.innerHTML = '';
+                
+                // Sort models by contribution (highest first)
+                const sortedModels = Object.entries(ensembleDetails.model_contributions)
+                    .sort((a, b) => b[1].contribution - a[1].contribution);
+                
+                sortedModels.forEach(([modelName, data]) => {
+                    const contributionDiv = document.createElement('div');
+                    contributionDiv.className = 'flex justify-between items-center bg-white bg-opacity-10 rounded-lg p-3';
+                    
+                    const modelDisplayName = modelName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const weight = (data.weight * 100).toFixed(1);
+                    const prediction = data.prediction.toLocaleString();
+                    
+                    contributionDiv.innerHTML = `
+                        <div>
+                            <div class="text-white font-medium">${modelDisplayName}</div>
+                            <div class="text-white opacity-75 text-sm">$${prediction}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white font-semibold">${weight}%</div>
+                            <div class="w-16 bg-white bg-opacity-20 rounded-full h-2 mt-1">
+                                <div class="bg-blue-400 h-2 rounded-full" style="width: ${weight}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    contributionsContainer.appendChild(contributionDiv);
+                });
+                
+                // Update model weights chart
+                updateModelWeightsChart(ensembleDetails.model_contributions);
+            }
+            
+            function updateModelWeightsChart(contributions) {
+                const ctx = document.getElementById('modelWeightsChart');
+                if (!ctx) return;
+                
+                const labels = Object.keys(contributions).map(name => 
+                    name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                );
+                const weights = Object.values(contributions).map(data => (data.weight * 100).toFixed(1));
+                
+                // Destroy existing chart if it exists
+                if (window.modelWeightsChartInstance) {
+                    window.modelWeightsChartInstance.destroy();
+                }
+                
+                window.modelWeightsChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: weights,
+                            backgroundColor: [
+                                '#4F46E5', '#7C3AED', '#EC4899', '#EF4444', '#F59E0B',
+                                '#10B981', '#06B6D4', '#8B5CF6', '#F97316', '#84CC16'
+                            ],
+                            borderWidth: 2,
+                            borderColor: 'rgba(255, 255, 255, 0.2)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'white',
+                                    font: { size: 10 },
+                                    padding: 10
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function toggleEnsembleDetails() {
+                const detailsSection = document.getElementById('ensembleDetails');
+                const toggleButton = document.getElementById('toggleEnsembleDetails');
+                
+                if (detailsSection.classList.contains('hidden')) {
+                    detailsSection.classList.remove('hidden');
+                    toggleButton.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Hide Model Details';
+                } else {
+                    detailsSection.classList.add('hidden');
+                    toggleButton.innerHTML = '<i class="fas fa-cogs mr-2"></i>View Model Details';
+                }
+            }
+
+            // Download functions
+            function downloadCSV() {
+                if (!currentPredictionData) {
+                    alert('No prediction data available');
+                    return;
+                }
+
+                // Create CSV content
+                let csvContent = "Property Feature,Value\n";
+                csvContent += `Bedrooms,${currentPredictionData.features.bedrooms}\n`;
+                csvContent += `Bathrooms,${currentPredictionData.features.bathrooms}\n`;
+                csvContent += `Living Space (sq ft),${currentPredictionData.features.sqft_living}\n`;
+                csvContent += `Lot Size (sq ft),${currentPredictionData.features.sqft_lot}\n`;
+                csvContent += `Floors,${currentPredictionData.features.floors}\n`;
+                csvContent += `Waterfront,${currentPredictionData.features.waterfront == '1' ? 'Yes' : 'No'}\n`;
+                csvContent += `View Rating,${currentPredictionData.features.view}\n`;
+                csvContent += `Condition,${currentPredictionData.features.condition}\n`;
+                csvContent += `Grade,${currentPredictionData.features.grade}\n`;
+                csvContent += `Year Built,${currentPredictionData.features.yr_built}\n`;
+                csvContent += `Predicted Price,${currentPredictionData.prediction}\n`;
+                csvContent += `Date,${new Date().toLocaleString()}\n`;
+
+                // Download CSV
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `house_prediction_${Date.now()}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            function downloadPDF() {
+                if (!currentPredictionData) {
+                    alert('No prediction data available');
+                    return;
+                }
+
+                // Create HTML content for PDF
+                const htmlContent = `
+    <html>
+
+    <head>
+        <title>House Price Prediction Report</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+            }
+
+            .header {
+                text-align: center;
+                color: #2563eb;
+                margin-bottom: 30px;
+            }
+
+            .property-details {
+                margin: 20px 0;
+            }
+
+            .feature {
+                margin: 10px 0;
+                padding: 10px;
+                background: #f8f9fa;
+                border-left: 4px solid #2563eb;
+            }
+
+            .price {
+                font-size: 24px;
+                font-weight: bold;
+                color: #059669;
+                text-align: center;
+                margin: 30px 0;
+            }
+
+            .footer {
+                margin-top: 40px;
+                text-align: center;
+                color: #6b7280;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="header">
+            <h1>🏠 House Price Prediction Report</h1>
+            <p>AI-Powered Property Valuation</p>
+        </div>
+
+        <div class="property-details">
+            <h2>Property Features</h2>
+            <div class="feature"><strong>Bedrooms:</strong> ${currentPredictionData.features.bedrooms}</div>
+            <div class="feature"><strong>Bathrooms:</strong> ${currentPredictionData.features.bathrooms}</div>
+            <div class="feature"><strong>Living Space:</strong> ${currentPredictionData.features.sqft_living} sq ft
+            </div>
+            <div class="feature"><strong>Lot Size:</strong> ${currentPredictionData.features.sqft_lot} sq ft</div>
+            <div class="feature"><strong>Floors:</strong> ${currentPredictionData.features.floors}</div>
+            <div class="feature"><strong>Waterfront:</strong> ${currentPredictionData.features.waterfront == '1' ? 'Yes'
+                        : 'No'}</div>
+            <div class="feature"><strong>View Rating:</strong> ${currentPredictionData.features.view}/4</div>
+            <div class="feature"><strong>Condition:</strong> ${currentPredictionData.features.condition}/5</div>
+            <div class="feature"><strong>Grade:</strong> ${currentPredictionData.features.grade}/12</div>
+            <div class="feature"><strong>Year Built:</strong> ${currentPredictionData.features.yr_built}</div>
+        </div>
+
+        <div class="price">
+            Predicted Price: ${currentPredictionData.prediction}
+        </div>
+
+        <div class="footer">
+            <p>Generated on ${new Date().toLocaleString()}</p>
+            <p>House Price Predictor - AI-Powered Valuation System</p>
+        </div>
+    </body>
+
+    </html>
+    `;
+
+                // Open in new window for printing/saving as PDF
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(htmlContent);
+                newWindow.document.close();
+                newWindow.print();
+            }
+
+            // Chart functions
+            let featuresChart = null;
+            let priceChart = null;
+
+            function showCharts() {
+                if (!currentPredictionData) {
+                    alert('No prediction data available');
+                    return;
+                }
+
+                document.getElementById('chartsSection').classList.remove('hidden');
+
+                // Create charts
+                createFeaturesChart();
+                createPriceChart();
+                createPropertySummary();
+            }
+
+            function createFeaturesChart() {
+                const ctx = document.getElementById('featuresChart').getContext('2d');
+
+                if (featuresChart) {
+                    featuresChart.destroy();
+                }
+
+                const features = currentPredictionData.features;
+
+                featuresChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Bedrooms', 'Bathrooms', 'Living Space', 'Floors', 'View', 'Condition', 'Grade'],
+                        datasets: [{
+                            label: 'Property Features',
+                            data: [
+                                features.bedrooms * 2, // Scale for visibility
+                                features.bathrooms * 2.5,
+                                features.sqft_living / 500, // Scale down
+                                features.floors * 3,
+                                features.view * 2.5,
+                                features.condition * 2,
+                                features.grade * 0.8
+                            ],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                },
+                                pointLabels: {
+                                    color: 'white'
+                                },
+                                ticks: {
+                                    color: 'white',
+                                    backdropColor: 'transparent'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createPriceChart() {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+
+                if (priceChart) {
+                    priceChart.destroy();
+                }
+
+                const predictedPrice = currentPredictionData.raw_prediction;
+
+                priceChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Market Low', 'Your Prediction', 'Market Average', 'Market High'],
+                        datasets: [{
+                            label: 'Price Comparison ($)',
+                            data: [250000, predictedPrice, 450000, 650000],
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(168, 85, 247, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(239, 68, 68, 1)',
+                                'rgba(34, 197, 94, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(168, 85, 247, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'white',
+                                    callback: function (value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createPropertySummary() {
+                const features = currentPredictionData.features;
+                const summaryDiv = document.getElementById('propertySummary');
+
+                summaryDiv.innerHTML = `
+    <div class="bg-blue-500 bg-opacity-20 rounded-lg p-3">
+        <div class="text-2xl font-bold text-white">${features.bedrooms}</div>
+        <div class="text-sm text-white opacity-75">Bedrooms</div>
+    </div>
+    <div class="bg-green-500 bg-opacity-20 rounded-lg p-3">
+        <div class="text-2xl font-bold text-white">${features.bathrooms}</div>
+        <div class="text-sm text-white opacity-75">Bathrooms</div>
+    </div>
+    <div class="bg-purple-500 bg-opacity-20 rounded-lg p-3">
+        <div class="text-2xl font-bold text-white">${parseInt(features.sqft_living).toLocaleString()}</div>
+        <div class="text-sm text-white opacity-75">Sq Ft Living</div>
+    </div>
+    <div class="bg-yellow-500 bg-opacity-20 rounded-lg p-3">
+        <div class="text-2xl font-bold text-white">${features.floors}</div>
+        <div class="text-sm text-white opacity-75">Floors</div>
+    </div>
+    <div class="bg-red-500 bg-opacity-20 rounded-lg p-3">
+        <div class="text-2xl font-bold text-white">${features.yr_built}</div>
+        <div class="text-sm text-white opacity-75">Year Built</div>
+    </div>
+    `;
+            }
+        </script>
+</body>
+
+</html>

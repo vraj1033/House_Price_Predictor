@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Analytics Dashboard - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #000000 0%, #2d1b69 50%, #1a0b3d 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .trend-neutral {
+            color: #f59e0b;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div class="background-container"></div>
+
+    <div class="container mx-auto px-4 py-8 min-h-screen">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-white mb-2">
+                    <i class="fas fa-chart-line mr-3"></i>Advanced Analytics Dashboard
+                </h1>
+                <p class="text-white opacity-90">
+                    Comprehensive insights and market intelligence
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="window.location.href='/'"
+                    class="glass-effect px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-300">
+                    <i class="fas fa-home mr-2"></i>Home
+                </button>
+                <button onclick="refreshDashboard()"
+                    class="glass-effect px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-300">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Metrics Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-3xl">
+                        <i class="fas fa-brain text-purple-400"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-white" id="totalPredictions">--</div>
+                        <div class="text-white opacity-75 text-sm">Total Predictions</div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="trend-up text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>+12% this month
+                    </span>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-3xl">
+                        <i class="fas fa-dollar-sign text-green-400"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-white" id="avgPrice">--</div>
+                        <div class="text-white opacity-75 text-sm">Average Price</div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="trend-up text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>+5.2% vs last month
+                    </span>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-3xl">
+                        <i class="fas fa-camera text-blue-400"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-white" id="photosAnalyzed">--</div>
+                        <div class="text-white opacity-75 text-sm">Photos Analyzed</div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="trend-up text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>+28% this week
+                    </span>
+                </div>
+            </div>
+
+            <div class="metric-card rounded-2xl p-6 fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-3xl">
+                        <i class="fas fa-target text-yellow-400"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-white" id="accuracy">--</div>
+                        <div class="text-white opacity-75 text-sm">Model Accuracy</div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="trend-up text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>+2.1% improved
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Price Trends Chart -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-chart-line mr-3"></i>Price Trends
+                </h3>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Model Performance Chart -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-cogs mr-3"></i>Model Performance
+                </h3>
+                <div class="chart-container">
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Analysis Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Top Features -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-star mr-3"></i>Top Price Factors
+                </h3>
+                <div class="space-y-4" id="topFeatures">
+                    <!-- Features will be populated here -->
+                </div>
+            </div>
+
+            <!-- Market Insights -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-lightbulb mr-3"></i>Market Insights
+                </h3>
+                <div class="space-y-4" id="marketInsights">
+                    <!-- Insights will be populated here -->
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-clock mr-3"></i>Recent Activity
+                </h3>
+                <div class="space-y-4" id="recentActivity">
+                    <!-- Activity will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Analytics Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Geographic Distribution -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-map mr-3"></i>Geographic Distribution
+                </h3>
+                <div class="chart-container">
+                    <canvas id="geoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Property Types -->
+            <div class="glass-effect rounded-3xl p-8 fade-in">
+                <h3 class="text-2xl font-bold text-white mb-6">
+                    <i class="fas fa-home mr-3"></i>Property Analysis
+                </h3>
+                <div class="chart-container">
+                    <canvas id="propertyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="glass-effect rounded-3xl p-8 fade-in">
+            <h3 class="text-2xl font-bold text-white mb-6">
+                <i class="fas fa-robot mr-3"></i>AI-Powered Recommendations
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="aiRecommendations">
+                <!-- Recommendations will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dashboard data
+        let dashboardData = {
+            totalPredictions: 1247,
+            avgPrice: 485000,
+            photosAnalyzed: 892,
+            accuracy: 92.4
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function () {
+            loadDashboardData();
+            createCharts();
+            populateFeatures();
+            populateInsights();
+            populateActivity();
+            populateRecommendations();
+        });
+
+        function loadDashboardData() {
+            // Update metric cards
+            document.getElementById('totalPredictions').textContent = dashboardData.totalPredictions.toLocaleString();
+            document.getElementById('avgPrice').textContent = '$' + dashboardData.avgPrice.toLocaleString();
+            document.getElementById('photosAnalyzed').textContent = dashboardData.photosAnalyzed.toLocaleString();
+            document.getElementById('accuracy').textContent = dashboardData.accuracy + '%';
+        }
+
+        function createCharts() {
+            createPriceChart();
+            createModelChart();
+            createGeoChart();
+            createPropertyChart();
+        }
+
+        function createPriceChart() {
+            const ctx = document.getElementById('priceChart');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Average Price',
+                        data: [420000, 435000, 445000, 460000, 475000, 485000],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'white',
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createModelChart() {
+            const ctx = document.getElementById('modelChart');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Accuracy', 'Speed', 'Reliability', 'Coverage', 'Innovation'],
+                    datasets: [{
+                        label: 'Ensemble Model',
+                        data: [92, 88, 95, 90, 94],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        pointBackgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.2)' },
+                            pointLabels: { color: 'white' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createGeoChart() {
+            const ctx = document.getElementById('geoChart');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Seattle Metro', 'Bellevue', 'Tacoma', 'Everett', 'Other'],
+                    datasets: [{
+                        data: [35, 25, 15, 12, 13],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#f59e0b',
+                            '#ef4444',
+                            '#8b5cf6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: 'white' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPropertyChart() {
+            const ctx = document.getElementById('propertyChart');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1-2 BR', '3 BR', '4 BR', '5+ BR'],
+                    datasets: [{
+                        label: 'Average Price',
+                        data: [320000, 485000, 650000, 850000],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#f59e0b',
+                            '#ef4444'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'white',
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateFeatures() {
+            const features = [
+                { name: 'Square Footage', impact: 85, trend: 'up' },
+                { name: 'Location Score', impact: 78, trend: 'up' },
+                { name: 'Property Grade', impact: 72, trend: 'neutral' },
+                { name: 'Year Built', impact: 65, trend: 'down' },
+                { name: 'Waterfront', impact: 58, trend: 'up' }
+            ];
+
+            const container = document.getElementById('topFeatures');
+            container.innerHTML = features.map(feature => `
+                <div class="flex items-center justify-between p-3 bg-white bg-opacity-10 rounded-lg">
+                    <div>
+                        <div class="text-white font-medium">${feature.name}</div>
+                        <div class="text-white opacity-75 text-sm">${feature.impact}% impact</div>
+                    </div>
+                    <div class="trend-${feature.trend}">
+                        <i class="fas fa-arrow-${feature.trend === 'up' ? 'up' : feature.trend === 'down' ? 'down' : 'right'}"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateInsights() {
+            const insights = [
+                { icon: 'chart-line', text: 'Market showing 5.2% growth this quarter', type: 'positive' },
+                { icon: 'home', text: 'Luxury properties (+15% demand)', type: 'positive' },
+                { icon: 'map-marker-alt', text: 'Seattle Metro leading price gains', type: 'neutral' },
+                { icon: 'calendar', text: 'Best selling season approaching', type: 'positive' }
+            ];
+
+            const container = document.getElementById('marketInsights');
+            container.innerHTML = insights.map(insight => `
+                <div class="flex items-start p-3 bg-white bg-opacity-10 rounded-lg">
+                    <i class="fas fa-${insight.icon} text-${insight.type === 'positive' ? 'green' : insight.type === 'negative' ? 'red' : 'yellow'}-400 mr-3 mt-1"></i>
+                    <div class="text-white text-sm">${insight.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function populateActivity() {
+            const activities = [
+                { action: 'Price prediction', time: '2 minutes ago', icon: 'brain' },
+                { action: 'Photo analysis', time: '5 minutes ago', icon: 'camera' },
+                { action: 'Market report', time: '1 hour ago', icon: 'chart-bar' },
+                { action: 'User registration', time: '2 hours ago', icon: 'user-plus' }
+            ];
+
+            const container = document.getElementById('recentActivity');
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center p-3 bg-white bg-opacity-10 rounded-lg">
+                    <i class="fas fa-${activity.icon} text-blue-400 mr-3"></i>
+                    <div class="flex-1">
+                        <div class="text-white text-sm">${activity.action}</div>
+                        <div class="text-white opacity-75 text-xs">${activity.time}</div>
+                    </div>
+                    <div class="pulse-dot w-2 h-2 bg-green-400 rounded-full"></div>
+                </div>
+            `).join('');
+        }
+
+        function populateRecommendations() {
+            const recommendations = [
+                {
+                    title: 'Market Expansion',
+                    description: 'Consider expanding to Eastside markets',
+                    priority: 'high',
+                    icon: 'expand-arrows-alt'
+                },
+                {
+                    title: 'Model Enhancement',
+                    description: 'Add seasonal adjustment factors',
+                    priority: 'medium',
+                    icon: 'cogs'
+                },
+                {
+                    title: 'User Experience',
+                    description: 'Implement voice search feature',
+                    priority: 'low',
+                    icon: 'microphone'
+                }
+            ];
+
+            const container = document.getElementById('aiRecommendations');
+            container.innerHTML = recommendations.map(rec => `
+                <div class="metric-card rounded-2xl p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-${rec.icon} text-2xl text-purple-400 mr-3"></i>
+                        <div>
+                            <div class="text-white font-semibold">${rec.title}</div>
+                            <div class="text-${rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'green'}-400 text-xs uppercase font-bold">
+                                ${rec.priority} Priority
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-white opacity-90 text-sm">${rec.description}</div>
+                </div>
+            `).join('');
+        }
+
+        function refreshDashboard() {
+            // Simulate data refresh
+            const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"] i');
+            refreshBtn.classList.add('fa-spin');
+
+            setTimeout(() => {
+                refreshBtn.classList.remove('fa-spin');
+                // You could reload actual data here
+                console.log('Dashboard refreshed');
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

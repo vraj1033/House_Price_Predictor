@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Plan - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .plan-card.popular::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 5px 40px;
+            font-size: 12px;
+            font-weight: bold;
+            transform: rotate(45deg);
+            z-index: 10;
+        }
+
+        .feature-check {
+            color: #10b981;
+            margin-right: 8px;
+        }
+
+        .price-highlight {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-pro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-pro:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .plan-card {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container"></div>
+    
+    <div class="container mx-auto px-4 py-8 min-h-screen">
+        <!-- Navigation -->
+        <div class="flex justify-between items-center mb-8">
+            <a href="/" class="back-button">
+                <i class="fas fa-arrow-left mr-2"></i><span class="btn-text">Back to Home</span>
+            </a>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                <i class="fas fa-crown mr-4 text-yellow-400"></i>Upgrade to Pro
+            </h1>
+            <p class="text-xl text-white opacity-90">
+                Unlock advanced features and unlimited predictions
+            </p>
+        </div>
+
+        {% if active_subscription %}
+        <!-- Active Subscription Notice -->
+        <div class="glass-effect rounded-2xl p-8 mb-8 text-center">
+            <div class="text-green-400 mb-4">
+                <i class="fas fa-check-circle text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">You're Already Pro! 🎉</h2>
+            <p class="text-white opacity-80 mb-4">
+                Your {{ active_subscription.plan_type.title() }} Pro subscription is active until 
+                {{ active_subscription.subscription_end.strftime('%B %d, %Y') }}
+            </p>
+            <a href="/dashboard" class="btn-pro inline-block">
+                <i class="fas fa-chart-line mr-2"></i>Go to Dashboard
+            </a>
+        </div>
+        {% else %}
+        <!-- Pricing Plans -->
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- Monthly Plan -->
+            <div class="plan-card glass-effect rounded-2xl p-8">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-white mb-2">Monthly Pro</h3>
+                    <div class="price-highlight text-4xl font-bold mb-2">
+                        ₹{{ monthly_plan.price_inr }}
+                    </div>
+                    <p class="text-white opacity-70">per month</p>
+                </div>
+
+                <ul class="space-y-3 mb-8">
+                    {% for feature in monthly_plan.features %}
+                    <li class="flex items-start text-white">
+                        <i class="fas fa-check feature-check mt-1"></i>
+                        <span>{{ feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <button onclick="initiatePayment('monthly')" class="btn-pro" id="monthly-btn">
+                    <i class="fas fa-credit-card mr-2"></i>Subscribe Monthly
+                </button>
+            </div>
+
+            <!-- Yearly Plan -->
+            <div class="plan-card popular glass-effect rounded-2xl p-8 border-2 border-yellow-400">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-white mb-2">Yearly Pro</h3>
+                    <div class="price-highlight text-4xl font-bold mb-2">
+                        ₹{{ yearly_plan.price_inr }}
+                    </div>
+                    <p class="text-white opacity-70">per year</p>
+                    <div class="bg-green-500 text-white px-3 py-1 rounded-full text-sm mt-2 inline-block">
+                        Save ₹{{ (monthly_plan.price_inr * 12) - yearly_plan.price_inr }}!
+                    </div>
+                </div>
+
+                <ul class="space-y-3 mb-8">
+                    {% for feature in yearly_plan.features %}
+                    <li class="flex items-start text-white">
+                        <i class="fas fa-check feature-check mt-1"></i>
+                        <span>{{ feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <button onclick="initiatePayment('yearly')" class="btn-pro" id="yearly-btn">
+                    <i class="fas fa-crown mr-2"></i>Subscribe Yearly
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Features Comparison -->
+        <div class="glass-effect rounded-2xl p-8 mt-12">
+            <h2 class="text-3xl font-bold text-white text-center mb-8">
+                Why Choose Pro?
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="text-blue-400 mb-4">
+                        <i class="fas fa-infinity text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Unlimited Predictions</h3>
+                    <p class="text-white opacity-70">
+                        No limits on property price predictions. Analyze as many properties as you want.
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-green-400 mb-4">
+                        <i class="fas fa-brain text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Advanced AI Analysis</h3>
+                    <p class="text-white opacity-70">
+                        Get detailed insights with our premium AI models and photo analysis features.
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-purple-400 mb-4">
+                        <i class="fas fa-chart-line text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Market Reports</h3>
+                    <p class="text-white opacity-70">
+                        Access exclusive market trend reports and investment insights.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="text-center mt-8">
+            <p class="text-white opacity-70 text-sm">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Secure payments powered by Razorpay. Your data is protected with bank-level security.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function initiatePayment(planType) {
+            const button = document.getElementById(planType + '-btn');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+            // Create payment order
+            fetch('/create-payment-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    plan_type: planType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Initialize Razorpay payment
+                    const options = {
+                        key: data.key_id,
+                        amount: data.amount,
+                        currency: data.currency,
+                        name: 'House Price Predictor',
+                        description: data.plan_name,
+                        order_id: data.order_id,
+                        prefill: {
+                            name: data.user_name,
+                            email: data.user_email
+                        },
+                        theme: {
+                            color: '#667eea'
+                        },
+                        handler: function(response) {
+                            // Payment successful, verify on server
+                            verifyPayment(response);
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                // Payment cancelled
+                                resetButton(button, planType);
+                            }
+                        }
+                    };
+
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    alert('Error: ' + data.error);
+                    resetButton(button, planType);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Payment initialization failed. Please try again.');
+                resetButton(button, planType);
+            });
+        }
+
+        function verifyPayment(response) {
+            fetch('/verify-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_id: response.razorpay_payment_id,
+                    order_id: response.razorpay_order_id,
+                    signature: response.razorpay_signature
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to success page
+                    window.location.href = '/payment-success';
+                } else {
+                    alert('Payment verification failed: ' + data.error);
+                    window.location.href = '/payment-failed';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Payment verification failed. Please contact support.');
+                window.location.href = '/payment-failed';
+            });
+        }
+
+        function resetButton(button, planType) {
+            button.disabled = false;
+            const icon = planType === 'yearly' ? 'crown' : 'credit-card';
+            const text = planType === 'yearly' ? 'Subscribe Yearly' : 'Subscribe Monthly';
+            button.innerHTML = `<i class="fas fa-${icon} mr-2"></i>${text}`;
+        }
+    </script>
+</body>
+</html>
