@@ -1017,7 +1017,7 @@ def predict():
                 condition=condition,
                 grade=grade,
                 yr_built=yr_built,
-                predicted_price=prediction
+                predicted_price=float(prediction)
             )
             db.session.add(pred_record)
             db.session.commit()
