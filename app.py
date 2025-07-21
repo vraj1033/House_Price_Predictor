@@ -1025,15 +1025,24 @@ def predict():
         response_data = {
             'success': True,
             'prediction': formatted_prediction,
-            'raw_prediction': prediction,
+            'raw_prediction': float(prediction),  # Convert numpy float32 to Python float
             'model_type': model_type
         }
         
         # Add ensemble details if available
         if contributions:
+            # Convert numpy values in contributions to Python floats
+            serializable_contributions = {}
+            for model_name, contrib in contributions.items():
+                serializable_contributions[model_name] = {
+                    'prediction': float(contrib['prediction']),
+                    'weight': float(contrib['weight']),
+                    'contribution': float(contrib['contribution'])
+                }
+            
             response_data['ensemble_details'] = {
-                'model_contributions': contributions,
-                'confidence_score': min(95, max(75, 85 + (prediction / 1000000) * 5))  # Dynamic confidence
+                'model_contributions': serializable_contributions,
+                'confidence_score': min(95, max(75, 85 + (float(prediction) / 1000000) * 5))  # Dynamic confidence
             }
         
         return jsonify(response_data)
@@ -1501,18 +1510,27 @@ def cv_enhanced_prediction():
         response_data = {
             'success': True,
             'prediction': formatted_prediction,
-            'raw_prediction': final_prediction,
-            'base_prediction': base_prediction,
-            'cv_adjustment': cv_adjustment,
+            'raw_prediction': float(final_prediction),  # Convert numpy float32 to Python float
+            'base_prediction': float(base_prediction),  # Convert numpy float32 to Python float
+            'cv_adjustment': float(cv_adjustment),  # Convert numpy float32 to Python float
             'model_type': model_type,
             'cv_enhanced': cv_analysis is not None
         }
         
         # Add ensemble details if available
         if contributions:
+            # Convert numpy values in contributions to Python floats
+            serializable_contributions = {}
+            for model_name, contrib in contributions.items():
+                serializable_contributions[model_name] = {
+                    'prediction': float(contrib['prediction']),
+                    'weight': float(contrib['weight']),
+                    'contribution': float(contrib['contribution'])
+                }
+            
             response_data['ensemble_details'] = {
-                'model_contributions': contributions,
-                'confidence_score': min(95, max(75, 85 + (final_prediction / 1000000) * 5))
+                'model_contributions': serializable_contributions,
+                'confidence_score': min(95, max(75, 85 + (float(final_prediction) / 1000000) * 5))
             }
         
         # Add CV insights
