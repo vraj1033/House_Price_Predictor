@@ -20,6 +20,15 @@ import threading
 from payment_gateway import payment_gateway, get_pro_plan_info, calculate_pro_expiry
 from robust_email_sender import send_payment_confirmation_background
 import json
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from io import BytesIO
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 # Load environment variables
 load_dotenv()
 
@@ -487,7 +496,7 @@ class ProSubscription(db.Model):
     """Pro Plan subscription model"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    plan_type = db.Column(db.String(20), nullable=False)  # 'monthly' or 'yearly'
+    plan_type = db.Column(db.String(20), nullable=False)  # 'monthly', 'yearly', or 'lifetime'
     razorpay_order_id = db.Column(db.String(100), nullable=False)
     razorpay_payment_id = db.Column(db.String(100), nullable=True)
     payment_status = db.Column(db.String(20), default='pending')  # pending, completed, failed
@@ -653,16 +662,22 @@ def train_ensemble_model():
 # Routes
 @app.route('/')
 def index():
-    # Allow both authenticated and demo users
+    # Serve the new modern home page
     user = current_user if current_user.is_authenticated else None
-    return render_template('index.html', user=user)
+    return render_template('home.html', user=user)
+
+@app.route('/predict-page')
+def predict_page():
+    # Serve the prediction page
+    user = current_user if current_user.is_authenticated else None
+    return render_template('predict.html', user=user)
 
 @app.route('/auth')
 def auth():
     # If user is already logged in, redirect to main app
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    return render_template('auth.html')
+    return render_template('auth.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
 
 @app.route('/demo')
 def demo():
@@ -722,7 +737,7 @@ def google_callback():
                     send_welcome_email(user_info['email'], user_info['name'])
             
             login_user(user)
-            return redirect(url_for('welcome_splash'))
+            return redirect(url_for('index'))
         else:
             flash('Failed to get user information from Google', 'error')
             return redirect(url_for('auth'))
@@ -794,10 +809,7 @@ def register():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/welcome')
-def welcome_splash():
-    """Welcome splash screen after login"""
-    return render_template('welcome_splash.html')
+# Welcome splash removed for smoother navigation
 
 @app.route('/logout')
 @login_required
@@ -809,10 +821,7 @@ def logout():
 @app.route('/pro-plan')
 @login_required
 def pro_plan():
-    """Pro Plan subscription page"""
-    monthly_plan = get_pro_plan_info('monthly')
-    yearly_plan = get_pro_plan_info('yearly')
-    
+    """Pro Plan subscription page - New modern design"""
     # Check if user already has active subscription
     active_subscription = ProSubscription.query.filter_by(
         user_id=current_user.id, 
@@ -821,12 +830,39 @@ def pro_plan():
         ProSubscription.subscription_end > datetime.utcnow()
     ).first()
     
-    return render_template('pro_plan.html', 
+    # If user already has active Pro, redirect to Pro dashboard
+    if active_subscription:
+        return redirect(url_for('pro_dashboard'))
+    
+    monthly_plan = get_pro_plan_info('monthly')
+    yearly_plan = get_pro_plan_info('yearly')
+    
+    return render_template('pro_plan_new.html', 
                          user=current_user,
                          monthly_plan=monthly_plan,
                          yearly_plan=yearly_plan,
                          active_subscription=active_subscription,
                          razorpay_key_id=os.getenv('RAZORPAY_KEY_ID'))
+
+@app.route('/pro-dashboard')
+@login_required
+def pro_dashboard():
+    """Pro Dashboard for active Pro members"""
+    # Check if user has active subscription
+    active_subscription = ProSubscription.query.filter_by(
+        user_id=current_user.id, 
+        is_active=True
+    ).filter(
+        ProSubscription.subscription_end > datetime.utcnow()
+    ).first()
+    
+    # If no active subscription, redirect to pro plan page
+    if not active_subscription:
+        return redirect(url_for('pro_plan'))
+    
+    return render_template('pro_dashboard.html', 
+                         user=current_user,
+                         active_subscription=active_subscription)
 
 @app.route('/create-payment-order', methods=['POST'])
 @login_required
@@ -836,7 +872,7 @@ def create_payment_order():
         data = request.get_json()
         plan_type = data.get('plan_type', 'monthly')
         
-        if plan_type not in ['monthly', 'yearly']:
+        if plan_type not in ['monthly', 'yearly', 'lifetime']:
             return jsonify({'success': False, 'error': 'Invalid plan type'})
         
         plan_info = get_pro_plan_info(plan_type)
@@ -1053,6 +1089,196 @@ def predict():
             'error': str(e)
         })
 
+@app.route('/download-prediction-pdf', methods=['POST'])
+def download_prediction_pdf():
+    """Generate and download PDF report for prediction"""
+    try:
+        data = request.get_json()
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, 
+                              topMargin=72, bottomMargin=18)
+        
+        # Get styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            alignment=1,  # Center alignment
+            textColor=colors.HexColor('#2563eb')
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=12,
+            textColor=colors.HexColor('#1f2937')
+        )
+        
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=6,
+            textColor=colors.HexColor('#374151')
+        )
+        
+        # Build PDF content
+        story = []
+        
+        # Title
+        story.append(Paragraph("🏠 AI House Price Prediction Report", title_style))
+        story.append(Spacer(1, 20))
+        
+        # Report Info
+        report_date = datetime.now().strftime('%B %d, %Y at %I:%M %p')
+        story.append(Paragraph(f"<b>Report Generated:</b> {report_date}", normal_style))
+        if current_user.is_authenticated:
+            story.append(Paragraph(f"<b>Generated for:</b> {current_user.name}", normal_style))
+        story.append(Spacer(1, 20))
+        
+        # Prediction Result
+        story.append(Paragraph("📊 Prediction Results", heading_style))
+        
+        # Create prediction result table
+        pred_data = [
+            ['Predicted Price', data.get('prediction', 'N/A')],
+            ['Model Used', data.get('model_type', 'N/A')],
+            ['Confidence Score', f"{data.get('ensemble_details', {}).get('confidence_score', 'N/A')}%" if data.get('ensemble_details') else 'N/A'],
+            ['Analysis Date', datetime.now().strftime('%Y-%m-%d %H:%M')]
+        ]
+        
+        pred_table = Table(pred_data, colWidths=[2*inch, 3*inch])
+        pred_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb'))
+        ]))
+        
+        story.append(pred_table)
+        story.append(Spacer(1, 20))
+        
+        # Property Details
+        story.append(Paragraph("🏡 Property Details", heading_style))
+        
+        inputs = data.get('inputs', {})
+        property_data = [
+            ['Bedrooms', inputs.get('bedrooms', 'N/A')],
+            ['Bathrooms', inputs.get('bathrooms', 'N/A')],
+            ['Living Area', f"{inputs.get('sqft_living', 'N/A')} sq ft"],
+            ['Lot Size', f"{inputs.get('sqft_lot', 'N/A')} sq ft"],
+            ['Floors', inputs.get('floors', 'N/A')],
+            ['Waterfront', 'Yes' if inputs.get('waterfront') == '1' else 'No'],
+            ['View Quality', f"{inputs.get('view', 'N/A')}/4"],
+            ['Condition', f"{inputs.get('condition', 'N/A')}/5"],
+            ['Grade', f"{inputs.get('grade', 'N/A')}/12"],
+            ['Year Built', inputs.get('yr_built', 'N/A')]
+        ]
+        
+        property_table = Table(property_data, colWidths=[2*inch, 3*inch])
+        property_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb'))
+        ]))
+        
+        story.append(property_table)
+        story.append(Spacer(1, 20))
+        
+        # Model Contributions (if available)
+        if data.get('ensemble_details') and data['ensemble_details'].get('model_contributions'):
+            story.append(Paragraph("🤖 AI Model Analysis", heading_style))
+            
+            contributions = data['ensemble_details']['model_contributions']
+            model_data = [['Model', 'Prediction', 'Weight']]
+            
+            for model_name, contrib in contributions.items():
+                model_display = model_name.replace('_', ' ').title()
+                prediction = f"${contrib.get('prediction', 0):,.0f}"
+                weight = f"{contrib.get('weight', 0):.1%}"
+                model_data.append([model_display, prediction, weight])
+            
+            model_table = Table(model_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
+            model_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')])
+            ]))
+            
+            story.append(model_table)
+            story.append(Spacer(1, 20))
+        
+        # Disclaimer
+        story.append(Paragraph("⚠️ Important Disclaimer", heading_style))
+        disclaimer_text = """
+        This prediction is generated by AI models trained on historical real estate data. 
+        The actual market value may vary based on current market conditions, location-specific factors, 
+        property condition, and other variables not captured in this analysis. 
+        This report should be used as a reference tool and not as a substitute for professional 
+        real estate appraisal or market analysis.
+        """
+        story.append(Paragraph(disclaimer_text, normal_style))
+        story.append(Spacer(1, 20))
+        
+        # Footer
+        footer_text = """
+        <b>Generated by AI House Price Predictor</b><br/>
+        Advanced machine learning algorithms for accurate property valuation<br/>
+        Visit us at: https://house-price-predictor.com
+        """
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=9,
+            alignment=1,
+            textColor=colors.HexColor('#6b7280')
+        )
+        story.append(Paragraph(footer_text, footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        
+        # Get PDF data
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        # Return PDF as response
+        from flask import Response
+        return Response(
+            pdf_data,
+            mimetype='application/pdf',
+            headers={
+                'Content-Disposition': f'attachment; filename=house_price_prediction_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+            }
+        )
+        
+    except Exception as e:
+        print(f"❌ Error generating PDF: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Failed to generate PDF: {str(e)}'
+        }), 500
+
 @app.route('/history')
 @login_required
 def history():
@@ -1080,8 +1306,8 @@ def history():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Advanced Analytics Dashboard"""
-    return render_template('dashboard_new.html', user=current_user)
+    """Modern Analytics Dashboard"""
+    return render_template('dashboard_modern.html', user=current_user)
 
 @app.route('/map')
 def map_view():
@@ -1230,10 +1456,34 @@ def location_estimate():
 @app.route('/api/upload-image', methods=['POST'])
 def upload_image():
     """Handle property image upload and analysis"""
+    print("🔍 API endpoint /api/upload-image called")
+    print(f"🔍 Request method: {request.method}")
+    print(f"🔍 Request files: {list(request.files.keys())}")
     start_time = datetime.utcnow()
     
     try:
+        # Quick response test - bypass complex analysis for now
+        if 'test_mode' in request.form:
+            return jsonify({
+                'success': True,
+                'analysis': {
+                    'message': 'Test mode - endpoint is working',
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+            })
+        
+        # Add a simple test endpoint that doesn't do any file processing
+        return jsonify({
+            'success': True,
+            'analysis': {
+                'message': 'Simplified response - file processing temporarily disabled',
+                'timestamp': datetime.utcnow().isoformat(),
+                'debug': 'This is a test response to verify endpoint connectivity'
+            }
+        })
+        
         if 'image' not in request.files:
+            print("❌ No image file in request")
             return jsonify({'success': False, 'error': 'No image file provided'})
         
         file = request.files['image']

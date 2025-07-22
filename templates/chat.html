@@ -4,39 +4,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Assistant - House Price Predictor</title>
+    <title>AI Chat Assistant - inhouse</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #0a0a0a;
+            color: white;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
         }
 
         .chat-container {
-            max-width: 1200px;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: white;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem 2rem;
+        /* Animated background orb */
+        .background-orb {
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 40%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float 6s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* Navigation */
+        .nav-header {
+            position: relative;
+            z-index: 10;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
         }
 
+        .logo {
+            height: 32px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 5;
+            min-height: 0;
+        }
+
+        .main-content.welcome-mode {
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .main-content.chat-mode {
+            padding: 0;
+        }
+
+        /* Welcome section */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            max-width: 600px;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .welcome-subtitle {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        /* Quick action buttons */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .quick-action-btn.content-help {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .quick-action-btn.suggestions {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .quick-action-btn.job-application {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        /* Chat input area */
+        .chat-input-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            flex-shrink: 0;
+            z-index: 10;
+            margin: 0 auto;
+        }
+
+        /* Welcome mode - center the input */
+        .main-content.welcome-mode + .chat-input-container {
+            position: relative;
+        }
+
+        /* Chat mode - fix input at bottom */
+        .main-content.chat-mode + .chat-input-container {
+            position: sticky;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-input-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 1rem;
+            placeholder-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .attach-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 0.5rem 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .attach-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .send-btn {
+            background: #22c55e;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #16a34a;
+            transform: scale(1.05);
+        }
+
+        /* Chat messages area (hidden initially) */
         .chat-messages {
+            display: none;
             flex: 1;
             overflow-y: auto;
             padding: 2rem;
-            background: #f8fafc;
-            scroll-behavior: smooth;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            min-height: 0;
         }
 
         .chat-messages::-webkit-scrollbar {
@@ -44,24 +272,17 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: #e2e8f0;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 4px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
-        }
-
-        .chat-input-area {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-top: 1px solid #e2e8f0;
-            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .message {
@@ -83,33 +304,29 @@
         .user-message {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 1rem;
         }
 
         .user-message .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #22c55e;
             color: white;
             padding: 1rem 1.5rem;
             border-radius: 20px 20px 5px 20px;
             max-width: 70%;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .ai-message {
             display: flex;
             align-items: flex-start;
             gap: 1rem;
-            margin-bottom: 1rem;
         }
 
         .ai-message .message-content {
-            background: white;
-            color: #374151;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
             padding: 1rem 1.5rem;
             border-radius: 20px 20px 20px 5px;
             max-width: 70%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .avatar {
@@ -121,13 +338,11 @@
             justify-content: center;
             font-size: 18px;
             flex-shrink: 0;
-        }
-
-        .ai-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #22c55e;
             color: white;
         }
 
+        /* Typing indicator */
         .typing-indicator {
             display: flex;
             align-items: flex-start;
@@ -136,11 +351,10 @@
         }
 
         .typing-content {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
             padding: 1rem 1.5rem;
             border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -150,7 +364,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #667eea;
+            background: #22c55e;
             animation: typingBounce 1.4s ease-in-out infinite both;
         }
 
@@ -163,241 +377,103 @@
             40% { transform: scale(1); }
         }
 
-        .chat-input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: #f9fafb;
-        }
-
-        .chat-input:focus {
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .send-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .back-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-
-        /* Mobile responsive navigation - hide text, show only icons */
+        /* Responsive design */
         @media (max-width: 768px) {
-            .back-button {
-                padding: 12px;
-                min-width: 48px;
-                justify-content: center;
+            .welcome-title {
+                font-size: 2rem;
             }
             
-            .back-button .btn-text {
+            .welcome-subtitle {
+                font-size: 1.5rem;
+            }
+            
+            .quick-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-links {
                 display: none;
             }
-            
-            .back-button i {
-                margin-right: 0 !important;
-                font-size: 18px;
-            }
-        }
-
-        /* Extra small screens */
-        @media (max-width: 480px) {
-            .back-button {
-                padding: 10px;
-                min-width: 44px;
-            }
-            
-            .back-button i {
-                font-size: 16px;
-            }
-        }
-
-        .quick-actions {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .quick-action {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 0.5rem 1rem;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .quick-action:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        .welcome-section {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #64748b;
-        }
-
-        .welcome-avatar {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
     </style>
 </head>
 
 <body>
-    <div class="mx-auto chat-container">
-        <!-- Chat Header -->
-        <div class="chat-header">
-            <div class="flex items-center justify-between">
-                <!-- Left spacer for balance -->
-                <div class="flex-1"></div>
-                
-                <!-- Centered Title Section -->
-                <div class="flex items-center gap-4 flex-1 justify-center">
-                    <div class="avatar ai-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="text-center">
-                        <h1 class="text-2xl font-bold">AI Chat Assistant</h1>
-                        <div class="flex items-center justify-center gap-2 mt-1">
-                            <div class="status-indicator"></div>
-                            <span class="text-sm opacity-90">Online</span>
+    <div class="chat-container">
+        <!-- Animated background -->
+        <div class="background-orb"></div>
+
+        <!-- Navigation -->
+        <nav class="nav-header">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="inhouse" class="logo">
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/predict-page" class="nav-link">Predict</a>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                {% if current_user.is_authenticated %}
+                <a href="/logout" class="nav-link">Logout</a>
+                {% else %}
+                <a href="/auth" class="nav-link">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <div class="main-content" id="mainContent">
+            <!-- Welcome section -->
+            <div class="welcome-section" id="welcomeSection">
+                <h1 class="welcome-title">Hey! {{ current_user.name.split()[0] if current_user.is_authenticated and current_user.name else 'There' }}</h1>
+                <h2 class="welcome-subtitle">What can I help with?</h2>
+
+                <!-- Quick action buttons -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn content-help" onclick="sendQuickMessage('Help me with property analysis')">
+                        <div>
+                            <div style="font-weight: 600;">Property Analysis</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Help with property evaluation</div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Right Navigation -->
-                <div class="flex items-center justify-end flex-1">
-                    <button onclick="goBack()" class="back-button">
-                        <i class="fas fa-arrow-left mr-2"></i><span class="btn-text">Back</span>
+                    </button>
+                    <button class="quick-action-btn suggestions" onclick="sendQuickMessage('Give me market insights')">
+                        <div>
+                            <div style="font-weight: 600;">Market Insights</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Get real estate market data</div>
+                        </div>
+                    </button>
+                    <button class="quick-action-btn job-application" onclick="sendQuickMessage('Help me understand house pricing')">
+                        <div>
+                            <div style="font-weight: 600;">Price Guidance</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Learn about house pricing factors</div>
+                        </div>
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Chat Messages -->
-        <div id="chatMessages" class="chat-messages">
-            <!-- Welcome Section -->
-            <div class="welcome-section">
-                <div class="welcome-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 text-gray-800">Welcome to AI Chat Assistant!</h2>
-                <p class="text-lg mb-6">I'm here to help you with house price predictions, real estate questions, and market insights.</p>
-                
-                <!-- Quick Actions -->
-                <div class="quick-actions justify-center">
-                    <button class="quick-action" onclick="sendQuickMessage('What factors affect house prices?')">
-                        <i class="fas fa-home mr-2"></i>Price Factors
-                    </button>
-                    <button class="quick-action" onclick="sendQuickMessage('How accurate are your predictions?')">
-                        <i class="fas fa-chart-line mr-2"></i>Accuracy
-                    </button>
-                    <button class="quick-action" onclick="sendQuickMessage('Tell me about real estate market trends')">
-                        <i class="fas fa-trending-up mr-2"></i>Market Trends
-                    </button>
-                    <button class="quick-action" onclick="sendQuickMessage('How do I improve my property value?')">
-                        <i class="fas fa-tools mr-2"></i>Property Tips
-                    </button>
-                </div>
+            <!-- Chat messages (hidden initially) -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here dynamically -->
             </div>
         </div>
 
-        <!-- Chat Input Area -->
-        <div class="chat-input-area">
-            <div class="flex items-center gap-4">
+        <!-- Chat input - Fixed at bottom -->
+        <div class="chat-input-container" id="chatInputContainer">
+            <div class="chat-input-wrapper">
+                <div style="color: #22c55e; font-size: 1.2rem;">✨</div>
                 <input 
                     type="text" 
+                    class="chat-input" 
                     id="chatInput" 
-                    class="chat-input flex-1" 
-                    placeholder="Ask me anything about house prices, real estate, or market trends..."
+                    placeholder="Ask me anything......"
                     onkeypress="handleKeyPress(event)"
                 >
-                <button id="sendButton" onclick="sendMessage()" class="send-button">
-                    <i class="fas fa-paper-plane"></i>
+                <button class="attach-btn" onclick="handleAttachment()">
+                    <i class="fas fa-paperclip"></i>
+                    Attach file
                 </button>
-            </div>
-            
-            <!-- Quick Actions for Input -->
-            <div class="quick-actions">
-                <button class="quick-action" onclick="sendQuickMessage('Predict price for a 3-bedroom house')">
-                    <i class="fas fa-calculator mr-1"></i>Price Prediction
-                </button>
-                <button class="quick-action" onclick="sendQuickMessage('Best neighborhoods to invest in')">
-                    <i class="fas fa-map-marker-alt mr-1"></i>Investment Areas
-                </button>
-                <button class="quick-action" onclick="sendQuickMessage('Current market conditions')">
-                    <i class="fas fa-chart-bar mr-1"></i>Market Status
+                <button class="send-btn" id="sendButton" onclick="sendMessage()">
+                    <i class="fas fa-arrow-up"></i>
                 </button>
             </div>
         </div>
@@ -406,10 +482,6 @@
     <script>
         let isTyping = false;
         let messageHistory = [];
-
-        function goBack() {
-            window.history.back();
-        }
 
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -423,23 +495,38 @@
             sendMessage();
         }
 
+        function handleAttachment() {
+            // Create file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*,.pdf,.doc,.docx,.txt';
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    addMessage(`📎 Attached: ${file.name}`, 'user');
+                    addMessage('I can see you\'ve attached a file. However, file processing is not yet implemented in this demo. Please describe what you need help with!', 'ai');
+                }
+            };
+            fileInput.click();
+        }
+
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
-            if (!message || isTyping) return;
+            if (!message) return;
 
-            // Clear input
-            input.value = '';
-            
+            // Switch to chat mode
+            switchToChatMode();
+
             // Add user message
             addMessage(message, 'user');
-            
+            input.value = '';
+
             // Show typing indicator
             showTypingIndicator();
-            
+
             try {
-                console.log('Sending message:', message);
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -451,24 +538,18 @@
                     })
                 });
 
-                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('Response data:', data);
                 
                 // Hide typing indicator
                 hideTypingIndicator();
-                
+
                 if (data.success) {
                     addMessage(data.response, 'ai');
-                    messageHistory.push({
-                        user: message,
-                        ai: data.response
-                    });
+                    messageHistory.push({user: message, ai: data.response});
                 } else {
-                    addMessage(`Error: ${data.error || 'Unknown error occurred'}`, 'ai');
+                    addMessage('Sorry, I encountered an error. Please try again.', 'ai');
                 }
             } catch (error) {
-                console.error('Chat error:', error);
                 hideTypingIndicator();
                 addMessage('Sorry, I\'m having trouble connecting. Please check your internet connection and try again.', 'ai');
             }
@@ -476,30 +557,22 @@
 
         function addMessage(text, sender) {
             const messagesContainer = document.getElementById('chatMessages');
-            const welcomeSection = messagesContainer.querySelector('.welcome-section');
-            
-            // Remove welcome message on first interaction
-            if (welcomeSection && messageHistory.length === 0 && sender === 'user') {
-                welcomeSection.style.animation = 'fadeOut 0.3s ease-out';
-                setTimeout(() => welcomeSection.remove(), 300);
-            }
-
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
-            
+            messageDiv.className = 'message';
+
             if (sender === 'user') {
                 messageDiv.innerHTML = `
-                    <div class="message-content">
-                        ${escapeHtml(text)}
+                    <div class="user-message">
+                        <div class="message-content">${escapeHtml(text)}</div>
                     </div>
                 `;
             } else {
                 messageDiv.innerHTML = `
-                    <div class="avatar ai-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        ${formatAIResponse(text)}
+                    <div class="ai-message">
+                        <div class="avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">${formatAIResponse(text)}</div>
                     </div>
                 `;
             }
@@ -517,15 +590,14 @@
             typingDiv.id = 'typingIndicator';
             typingDiv.className = 'typing-indicator';
             typingDiv.innerHTML = `
-                <div class="ai-avatar" style="width: 32px; height: 32px; font-size: 14px;">
+                <div class="avatar">
                     <i class="fas fa-robot"></i>
                 </div>
-                <div class="flex gap-1 ml-3">
+                <div class="typing-content">
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                 </div>
-                <span class="ml-2 text-gray-600">AI is thinking...</span>
             `;
 
             messagesContainer.appendChild(typingDiv);
@@ -551,24 +623,43 @@
             return text
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\n/g, '<br>')
-                .replace(/```(.*?)```/gs, '<code class="bg-gray-100 p-2 rounded block">$1</code>');
+                .replace(/\n/g, '<br>');
         }
 
-        // Auto-focus on input
+        function switchToChatMode() {
+            const welcomeSection = document.getElementById('welcomeSection');
+            const chatMessages = document.getElementById('chatMessages');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (welcomeSection.style.display !== 'none') {
+                // Hide welcome section
+                welcomeSection.style.display = 'none';
+                
+                // Show chat messages
+                chatMessages.style.display = 'block';
+                
+                // Switch main content to chat mode
+                mainContent.classList.remove('welcome-mode');
+                mainContent.classList.add('chat-mode');
+                
+                // Ensure proper scrolling
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+        }
+
+        // Initialize welcome mode
+        function initializeWelcomeMode() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.classList.add('welcome-mode');
+        }
+
+        // Auto-focus on input and initialize
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('chatInput').focus();
+            initializeWelcomeMode();
         });
-
-        // Add CSS for fade out animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeOut {
-                from { opacity: 1; transform: translateY(0); }
-                to { opacity: 0; transform: translateY(-20px); }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 

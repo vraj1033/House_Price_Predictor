@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .metric-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .metric-change.positive {
+            color: #10b981;
+        }
+
+        .metric-change.negative {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 8px;
+        }
+
+        .time-filter button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .time-filter button.active,
+        .time-filter button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .no-data-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .no-data-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .no-data-subtitle {
+            font-size: 0.875rem;
+            margin-bottom: 24px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .predict-now-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .predict-now-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 1);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div class="container mx-auto px-6 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">My Dashboard</h1>
+                <p class="text-gray-400">Track your property price predictions and insights</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="/" class="nav-btn">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <a href="/predict-page" class="nav-btn">
+                    <i class="fas fa-calculator"></i>
+                    Predict
+                </a>
+                <a href="/map" class="nav-btn">
+                    <i class="fas fa-map"></i>
+                    Map
+                </a>
+                <button onclick="refreshDashboard()" class="nav-btn">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-400">Loading your dashboard...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="hidden">
+            <!-- Metrics Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total Predictions -->
+                <div class="metric-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-yellow-400">
+                            <i class="fas fa-dollar-sign text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="totalPredictions">0</div>
+                    <div class="metric-label">Total Predictions</div>
+                    <div class="metric-change positive" id="predictionsChange">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Average Price -->
+                <div class="metric-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-blue-400">
+                            <i class="fas fa-chart-bar text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="avgPrice">$0</div>
+                    <div class="metric-label">Average Price</div>
+                    <div class="metric-change positive" id="priceChange">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Highest Price -->
+                <div class="metric-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-green-400">
+                            <i class="fas fa-arrow-up text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="maxPrice">$0</div>
+                    <div class="metric-label">Highest Price</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-crown mr-1"></i>
+                        <span>Peak value</span>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="metric-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-purple-400">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="recentCount">0</div>
+                    <div class="metric-label">Recent Activity</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-calendar mr-1"></i>
+                        <span>Last 7 days</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="chart-container mb-8">
+                <div class="chart-header">
+                    <h3 class="chart-title">Price Trends</h3>
+                    <div class="time-filter">
+                        <button class="active" onclick="changeTimeFilter('12months', this)">12 months</button>
+                        <button onclick="changeTimeFilter('30days', this)">30 days</button>
+                        <button onclick="changeTimeFilter('7days', this)">7 days</button>
+                    </div>
+                </div>
+                <div id="chartContent">
+                    <canvas id="priceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Predictions -->
+            <div class="dashboard-card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Recent Predictions</h3>
+                    <span class="text-sm text-gray-400" id="predictionCount">0 predictions</span>
+                </div>
+                <div id="recentPredictions">
+                    <!-- Recent predictions will be populated here -->
+                </div>
+                <div id="loadMoreContainer" class="hidden mt-6 text-center">
+                    <button onclick="loadMorePredictions()" class="nav-btn" id="loadMoreBtn">
+                        <i class="fas fa-chevron-down"></i>
+                        Load More
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Data State -->
+        <div id="noDataState" class="hidden">
+            <div class="no-data-state">
+                <i class="fas fa-chart-line no-data-icon"></i>
+                <h3 class="no-data-title">No Predictions Yet</h3>
+                <p class="no-data-subtitle">
+                    Start making property price predictions to see your personalized analytics and insights here.
+                </p>
+                <a href="/predict-page" class="predict-now-btn">
+                    <i class="fas fa-calculator"></i>
+                    Predict Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden text-center py-12">
+            <div class="text-red-400 mb-4">
+                <i class="fas fa-exclamation-triangle text-4xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Error Loading Dashboard</h3>
+            <p class="text-gray-400 mb-4" id="errorMessage">Unable to load your dashboard data</p>
+            <button onclick="loadDashboardData()" class="predict-now-btn">
+                <i class="fas fa-refresh"></i>
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let priceChart = null;
+        let currentTimeFilter = '12months';
+        let allPredictions = [];
+        let displayedPredictions = 0;
+        const PREDICTIONS_PER_PAGE = 5;
+
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                showLoadingState();
+                
+                const response = await fetch('/api/dashboard-data');
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.stats.total_predictions === 0) {
+                        showNoDataState();
+                    } else {
+                        populateDashboard(data);
+                        showDashboardContent();
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to load dashboard data');
+                }
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showErrorState(error.message);
+            }
+        }
+
+        function showLoadingState() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('noDataState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+        }
+
+        function showDashboardContent() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+            document.getElementById('noDataState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+        }
+
+        function showNoDataState() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('noDataState').classList.remove('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+        }
+
+        function showErrorState(message) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('noDataState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function populateDashboard(data) {
+            // Update metrics
+            document.getElementById('totalPredictions').textContent = data.stats.total_predictions.toLocaleString();
+            document.getElementById('avgPrice').textContent = data.stats.avg_price;
+            document.getElementById('maxPrice').textContent = data.stats.max_price;
+            document.getElementById('recentCount').textContent = data.stats.recent_count;
+
+            // Create price chart
+            createPriceChart(data.trend_data);
+
+            // Display recent predictions
+            displayRecentPredictions(data.recent_predictions);
+        }
+
+        function createPriceChart(trendData) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+
+            if (priceChart) {
+                priceChart.destroy();
+            }
+
+            if (!trendData || trendData.length === 0) {
+                // Show empty chart
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['No Data'],
+                        datasets: [{
+                            label: 'No predictions yet',
+                            data: [0],
+                            borderColor: 'rgba(156, 163, 175, 0.5)',
+                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: getChartOptions()
+                });
+                return;
+            }
+
+            const labels = trendData.map(item => {
+                const date = new Date(item.month + '-01');
+                return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            });
+            
+            const prices = trendData.map(item => item.avg_price);
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Price',
+                        data: prices,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: getChartOptions()
+            });
+        }
+
+        function getChartOptions() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: {
+                                size: 12
+                            },
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        hoverBackgroundColor: '#667eea'
+                    }
+                }
+            };
+        }
+
+        function displayRecentPredictions(predictions) {
+            const container = document.getElementById('recentPredictions');
+            const countElement = document.getElementById('predictionCount');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            
+            if (!predictions || predictions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-history text-3xl mb-4 opacity-50"></i>
+                        <p>No recent predictions</p>
+                    </div>
+                `;
+                countElement.textContent = '0 predictions';
+                loadMoreContainer.classList.add('hidden');
+                return;
+            }
+
+            // Store all predictions and reset display counter
+            allPredictions = predictions;
+            displayedPredictions = 0;
+            
+            // Update prediction count
+            countElement.textContent = `${predictions.length} prediction${predictions.length !== 1 ? 's' : ''}`;
+            
+            // Clear container and show initial predictions
+            container.innerHTML = '';
+            loadMorePredictions();
+        }
+
+        function loadMorePredictions() {
+            const container = document.getElementById('recentPredictions');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            
+            // Calculate how many predictions to show
+            const endIndex = Math.min(displayedPredictions + PREDICTIONS_PER_PAGE, allPredictions.length);
+            const predictionsToShow = allPredictions.slice(displayedPredictions, endIndex);
+            
+            // Add new predictions to the container
+            const newPredictionsHTML = predictionsToShow.map(pred => `
+                <div class="flex items-center justify-between p-4 bg-white bg-opacity-5 rounded-lg mb-3 hover:bg-opacity-10 transition-all duration-200">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-home text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-white">${pred.price}</div>
+                            <div class="text-sm text-gray-400">
+                                ${pred.bedrooms} bed • ${pred.bathrooms} bath • ${pred.sqft_living.toLocaleString()} sqft
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-400">${pred.date}</div>
+                        <div class="text-xs text-gray-500">Predicted</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML += newPredictionsHTML;
+            displayedPredictions = endIndex;
+            
+            // Show/hide load more button
+            if (displayedPredictions >= allPredictions.length) {
+                loadMoreContainer.classList.add('hidden');
+            } else {
+                loadMoreContainer.classList.remove('hidden');
+                const remaining = allPredictions.length - displayedPredictions;
+                loadMoreBtn.innerHTML = `
+                    <i class="fas fa-chevron-down"></i>
+                    Load More (${remaining} remaining)
+                `;
+            }
+        }
+
+        function changeTimeFilter(period, button) {
+            // Update active button
+            document.querySelectorAll('.time-filter button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            currentTimeFilter = period;
+            // In a real implementation, you would reload data based on the time filter
+            console.log('Time filter changed to:', period);
+        }
+
+        async function refreshDashboard() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.classList.add('fa-spin');
+            
+            try {
+                await loadDashboardData();
+            } finally {
+                setTimeout(() => {
+                    refreshIcon.classList.remove('fa-spin');
+                }, 500);
+            }
+        }
+    </script>
+</body>
+
+</html>

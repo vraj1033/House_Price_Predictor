@@ -1,0 +1,16 @@
+<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="100" fill="#000000"/>
+  
+  <!-- House icon -->
+  <g transform="translate(20, 20)">
+    <!-- Main house shape -->
+    <polygon points="10,50 30,30 50,50 50,60 10,60" fill="#ffffff"/>
+    <!-- Roof -->
+    <polygon points="5,50 30,25 55,50 50,50 30,30 10,50" fill="#ffffff"/>
+  </g>
+  
+  <!-- "inhouse" text -->
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-size="36" font-weight="bold">
+    <text x="90" y="55">inhouse</text>
+  </g>
+</svg>

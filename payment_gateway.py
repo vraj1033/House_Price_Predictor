@@ -140,6 +140,22 @@ PRO_PLAN_CONFIG = {
             'API Access (Limited)',
             'Priority Feature Requests'
         ]
+    },
+    'lifetime': {
+        'name': 'Pro Plan - Lifetime',
+        'price_inr': 99,  # ₹99 lifetime
+        'price_paise': 9900,
+        'duration_days': 36500,  # 100 years (effectively lifetime)
+        'features': [
+            'Everything in Free',
+            'Data persistence across sessions',
+            'AI House Predictor Cloud sync',
+            'Cross-device synchronization',
+            '5 device activations',
+            'Lifetime updates',
+            'Self-hosting option',
+            'Priority support'
+        ]
     }
 }
 

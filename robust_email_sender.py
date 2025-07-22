@@ -33,7 +33,12 @@ class RobustEmailSender:
         
         try:
             # Plan details
-            plan_name = "Pro Plan - Monthly" if plan_type == "monthly" else "Pro Plan - Yearly"
+            if plan_type == "monthly":
+                plan_name = "Pro Plan - Monthly"
+            elif plan_type == "yearly":
+                plan_name = "Pro Plan - Yearly"
+            else:
+                plan_name = "Pro Plan - Lifetime"
             amount_inr = amount_paid / 100  # Convert paise to rupees
             
             # Create message

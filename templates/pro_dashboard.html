@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Dashboard - AI House Price Predictor</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .pro-gradient {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #000;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #ff6b35;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .subscription-card {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-black bg-opacity-50 backdrop-filter backdrop-blur-lg">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="inhouse" class="h-12 w-auto">
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/predict-page" class="nav-link">Predict</a>
+                    <a href="/chat" class="nav-link">AI Chat</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="pro-badge">
+                        <i class="fas fa-crown mr-1"></i>PRO ACTIVE
+                    </div>
+                    <!-- Profile Dropdown -->
+                    <div class="relative" id="profileDropdown">
+                        <button onclick="toggleProfileDropdown()" class="hover:opacity-80 transition-opacity">
+                            {% if current_user.avatar_url %}
+                            <img src="{{ current_user.avatar_url }}" alt="Profile"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer">
+                            {% else %}
+                            <div
+                                class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer">
+                                {{ (current_user.name or 'U')[0].upper() }}
+                            </div>
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-24 min-h-screen">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <!-- Header Section -->
+            <div class="text-center mb-16">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-crown text-black text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-5xl font-bold">Welcome Back, Pro Member!</h1>
+                        <p class="text-xl text-gray-300 mt-2">You're already part of our premium community</p>
+                    </div>
+                </div>
+                
+                <!-- Subscription Status -->
+                <div class="subscription-card max-w-2xl mx-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-2xl font-bold text-yellow-400">Pro Plan Active</h3>
+                            {% if active_subscription.plan_type == 'lifetime' %}
+                            <p class="text-gray-300">Lifetime Access</p>
+                            {% else %}
+                            <p class="text-gray-300">{{ active_subscription.plan_type.title() }} Subscription</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            {% if active_subscription.plan_type == 'lifetime' %}
+                            <p class="text-sm text-gray-400">Access Type</p>
+                            <p class="text-lg font-semibold text-green-400">
+                                <i class="fas fa-infinity mr-1"></i>Lifetime
+                            </p>
+                            {% else %}
+                            <p class="text-sm text-gray-400">Valid Until</p>
+                            <p class="text-lg font-semibold text-green-400">
+                                {{ active_subscription.subscription_end.strftime('%B %d, %Y') }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 rounded-full h-2 mb-4">
+                        <div class="pro-gradient h-2 rounded-full" style="width: 100%"></div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                        Your Pro subscription is active and all premium features are unlocked
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pro Features Grid -->
+            <div class="mb-16">
+                <h2 class="text-3xl font-bold text-center mb-12">Your Pro Features</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Unlimited Predictions -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-infinity text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">Unlimited Predictions</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Make unlimited property price predictions with no daily limits
+                        </p>
+                        <div class="text-center">
+                            <a href="/predict-page" class="cta-button">
+                                <i class="fas fa-calculator mr-2"></i>Start Predicting
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Analytics -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-chart-line text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">Advanced Analytics</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Access detailed market insights and prediction history analytics
+                        </p>
+                        <div class="text-center">
+                            <a href="/dashboard" class="cta-button">
+                                <i class="fas fa-chart-bar mr-2"></i>View Analytics
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Photo Analysis -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-camera text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">AI Photo Analysis</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Upload property photos for enhanced AI-powered analysis
+                        </p>
+                        <div class="text-center">
+                            <a href="/photo-analyzer" class="cta-button">
+                                <i class="fas fa-image mr-2"></i>Analyze Photos
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Map -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-map-marked-alt text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">Interactive Map</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Explore neighborhoods and market trends on our interactive map
+                        </p>
+                        <div class="text-center">
+                            <a href="/map" class="cta-button">
+                                <i class="fas fa-map mr-2"></i>Explore Map
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- AI Assistant -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-robot text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">AI Assistant</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Chat with our AI for personalized real estate advice and insights
+                        </p>
+                        <div class="text-center">
+                            <a href="/chat" class="cta-button">
+                                <i class="fas fa-comments mr-2"></i>Chat Now
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Priority Support -->
+                    <div class="feature-card p-8">
+                        <div class="pro-gradient w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <i class="fas fa-headset text-black text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-center">Priority Support</h3>
+                        <p class="text-gray-300 text-center mb-6">
+                            Get priority customer support and faster response times
+                        </p>
+                        <div class="text-center">
+                            <a href="mailto:support@housepredictor.com" class="cta-button">
+                                <i class="fas fa-envelope mr-2"></i>Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="text-center">
+                <h2 class="text-3xl font-bold mb-8">Quick Actions</h2>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/predict-page" class="cta-button text-lg px-8 py-4">
+                        <i class="fas fa-calculator mr-2"></i>Make a Prediction
+                    </a>
+                    <a href="/dashboard" class="cta-button text-lg px-8 py-4">
+                        <i class="fas fa-chart-line mr-2"></i>View Dashboard
+                    </a>
+                    <a href="/chat" class="cta-button text-lg px-8 py-4">
+                        <i class="fas fa-robot mr-2"></i>Ask AI Assistant
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black bg-opacity-50 py-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold mb-4">
+                    <i class="fas fa-crown text-yellow-400 mr-2"></i>Pro Member Benefits
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-400">
+                    <div>
+                        <i class="fas fa-infinity text-yellow-400 mr-2"></i>
+                        Unlimited predictions
+                    </div>
+                    <div>
+                        <i class="fas fa-chart-bar text-yellow-400 mr-2"></i>
+                        Advanced analytics
+                    </div>
+                    <div>
+                        <i class="fas fa-headset text-yellow-400 mr-2"></i>
+                        Priority support
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-gray-400">
+                <p>&copy; 2025 AI House Price Predictor. All rights reserved.</p>
+                <p class="mt-2">Thank you for being a valued Pro member!</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Profile Dropdown Functions
+        function toggleProfileDropdown() {
+            // Add dropdown functionality if needed
+            console.log('Profile dropdown clicked');
+        }
+
+        // Add entrance animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth entrance animations
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+
+</html>

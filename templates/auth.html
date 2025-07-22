@@ -4,401 +4,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to House Price Predictor</title>
+    <title>Sign In - AI House Price Predictor</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: white;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .auth-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
             width: 100%;
-            height: 100%;
-            z-index: -1;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .social-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            transition: all 0.3s ease;
+            width: 60px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .social-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .brand-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            position: relative;
             overflow: hidden;
         }
 
-        .background-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0;
-            transition: opacity 2s ease-in-out;
-        }
-
-        .background-slide.active {
-            opacity: 1;
-        }
-
-        .background-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
-            z-index: 1;
-        }
-
-        .content-wrapper {
-            position: relative;
-            z-index: 2;
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-focus:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .auth-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-        }
-
-        .tab-button.active {
-            background: rgba(255, 255, 255, 0.3);
+        .brand-text {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.1;
             color: white;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .tab-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Preload images */
-        .preload-images {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .floating-house {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .toggle-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
             transition: all 0.3s ease;
         }
 
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-5px);
+        .toggle-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
         }
 
-        /* Simple Title Design */
-        .auth-title {
-            color: #ffffff;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Typing Effect Styles */
-        .typing-word {
-            display: inline-block;
+        .divider {
             position: relative;
-            min-width: 200px;
+            text-align: center;
+            margin: 24px 0;
         }
 
-        .typing-cursor {
-            display: inline-block;
-            background-color: #ffffff;
-            width: 3px;
-            animation: blink 1s infinite;
-            margin-left: 2px;
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
+        .divider span {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0 16px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
         }
 
-        .typing-text {
-            display: inline-block;
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fca5a5;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #86efac;
+            font-size: 14px;
+            margin-bottom: 16px;
         }
     </style>
 </head>
 
-<body class="min-h-screen">
-    <!-- Background Container -->
-    <div class="background-container">
-        <div class="background-slide active"
-            style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
-        </div>
-        <div class="background-slide"
-            style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
-        </div>
-        <div class="background-slide"
-            style="background-image: url('https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
-        </div>
-        <div class="background-slide"
-            style="background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
-        </div>
-        <div class="background-slide"
-            style="background-image: url('https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80');">
-        </div>
-        <div class="background-slide"
-            style="background-image: url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80');">
-        </div>
-        <div class="background-overlay"></div>
-    </div>
+<body>
+    <div class="min-h-screen flex items-center justify-center p-6">
+        <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl shadow-2xl">
 
-    <!-- Preload Images -->
-    <div class="preload-images">
-        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-            alt="preload">
-        <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-            alt="preload">
-        <img src="https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-            alt="preload">
-        <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-            alt="preload">
-        <img src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80"
-            alt="preload">
-        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80"
-            alt="preload">
-    </div>
+            <!-- Brand Section -->
+            <div class="brand-section p-12 flex flex-col justify-center relative">
+                <!-- Logo -->
+                <div class="absolute top-8 left-8">
+                    <div class="flex items-center text-white">
+                        <i class="fas fa-home text-2xl mr-3"></i>
+                        <span class="text-xl font-bold">AI House Predictor</span>
+                    </div>
+                </div>
 
-    <div class="content-wrapper">
-        <div class="container mx-auto px-4 py-8 min-h-screen flex items-center">
-            <div class="w-full max-w-6xl mx-auto">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Main Brand Text -->
+                <div class="text-center">
+                    <div class="brand-text mb-6">
+                        Unleash your inner<br>
+                        <span class="text-yellow-300">property genius</span> today. 🏠
+                    </div>
+                    <p class="text-xl text-white text-opacity-90 max-w-md mx-auto">
+                        Discover the future of real estate with AI-powered price predictions and market insights.
+                    </p>
+                </div>
 
-                    <!-- Left Side - Welcome Content -->
-                    <div class="text-center lg:text-left">
-                        <div class="floating-house mb-8">
-                            <i class="fas fa-home text-8xl text-white opacity-90"></i>
-                        </div>
+                <!-- Decorative Elements -->
+                <div class="absolute bottom-8 right-8 opacity-20">
+                    <i class="fas fa-chart-line text-6xl text-white"></i>
+                </div>
+            </div>
 
-                        <h1 class="text-4xl lg:text-5xl font-bold mb-8">
-                            <span class="auth-title">
-                                House Price <span class="typing-word"><span class="typing-text" id="typingText">Predictor</span><span class="typing-cursor" id="typingCursor">|</span></span>
-                            </span>
-                        </h1>
-
-                        <p class="text-xl text-white opacity-90 mb-8 leading-relaxed">
-                            Discover the true value of your dream home with our AI-powered prediction system.
-                            Get instant, accurate price estimates based on comprehensive property analysis.
-                        </p>
-
-                        <!-- Features -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                            <div class="feature-card rounded-xl p-4">
-                                <i class="fas fa-brain text-2xl text-yellow-400 mb-2"></i>
-                                <h3 class="text-white font-semibold">AI-Powered</h3>
-                                <p class="text-white opacity-75 text-sm">Advanced machine learning algorithms</p>
-                            </div>
-                            <div class="feature-card rounded-xl p-4">
-                                <i class="fas fa-bolt text-2xl text-blue-400 mb-2"></i>
-                                <h3 class="text-white font-semibold">Instant Results</h3>
-                                <p class="text-white opacity-75 text-sm">Get predictions in seconds</p>
-                            </div>
-                            <div class="feature-card rounded-xl p-4">
-                                <i class="fas fa-chart-line text-2xl text-green-400 mb-2"></i>
-                                <h3 class="text-white font-semibold">Accurate Analysis</h3>
-                                <p class="text-white opacity-75 text-sm">Based on real market data</p>
-                            </div>
-                            <div class="feature-card rounded-xl p-4">
-                                <i class="fas fa-shield-alt text-2xl text-purple-400 mb-2"></i>
-                                <h3 class="text-white font-semibold">Secure & Private</h3>
-                                <p class="text-white opacity-75 text-sm">Your data is protected</p>
-                            </div>
-                        </div>
+            <!-- Auth Form Section -->
+            <div class="auth-container p-12 flex flex-col justify-center">
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">Sign In To Your Account.</h2>
+                        <p class="text-gray-400">Let's sign in to your account and get started.</p>
                     </div>
 
-                    <!-- Right Side - Auth Form -->
-                    <div class="max-w-md mx-auto w-full">
-                        <div class="glass-effect rounded-3xl p-8 shadow-2xl">
+                    <div id="loginError" class="error-message hidden"></div>
+                    <div id="loginSuccess" class="success-message hidden"></div>
 
-                            <!-- Tab Navigation -->
-                            <div class="flex mb-8 bg-white bg-opacity-10 rounded-2xl p-1">
-                                <button id="loginTab"
-                                    class="tab-button active flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300">
-                                    <i class="fas fa-sign-in-alt mr-2"></i>Login
-                                </button>
-                                <button id="registerTab"
-                                    class="tab-button flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300">
-                                    <i class="fas fa-user-plus mr-2"></i>Register
-                                </button>
+                    <form onsubmit="handleLogin(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                            <div class="relative">
+                                <i
+                                    class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="email" id="loginEmail" required class="form-input w-full pl-12"
+                                    placeholder="elementary221b@gmail.com">
                             </div>
+                        </div>
 
-                            <!-- Login Form -->
-                            <div id="loginForm" class="auth-form">
-                                <form class="space-y-6">
-                                    <div class="text-center mb-6">
-                                        <h2 class="text-2xl font-bold text-white mb-2">Welcome Back!</h2>
-                                        <p class="text-white opacity-75">Sign in to access your account</p>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-white font-semibold">
-                                            <i class="fas fa-envelope mr-2"></i>Email Address
-                                        </label>
-                                        <input type="email" name="email" required
-                                            class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                            placeholder="Enter your email">
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-white font-semibold">
-                                            <i class="fas fa-lock mr-2"></i>Password
-                                        </label>
-                                        <input type="password" name="password" required
-                                            class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                            placeholder="Enter your password">
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <label class="flex items-center text-white opacity-75">
-                                            <input type="checkbox" class="mr-2 rounded">
-                                            Remember me
-                                        </label>
-                                        <a href="#" class="text-yellow-400 hover:text-yellow-300 text-sm">Forgot
-                                            password?</a>
-                                    </div>
-
-                                    <button type="submit"
-                                        class="w-full bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg transform hover:scale-105 transition-all duration-300">
-                                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
-                                    </button>
-                                </form>
-                            </div>
-
-                            <!-- Register Form -->
-                            <div id="registerForm" class="auth-form hidden">
-                                <form class="space-y-6">
-                                    <div class="text-center mb-6">
-                                        <h2 class="text-2xl font-bold text-white mb-2">Join Us Today!</h2>
-                                        <p class="text-white opacity-75">Create your account to get started</p>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div class="space-y-2">
-                                            <label class="block text-white font-semibold">
-                                                <i class="fas fa-user mr-2"></i>First Name
-                                            </label>
-                                            <input type="text" name="first_name" required
-                                                class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                                placeholder="First name">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="block text-white font-semibold">
-                                                <i class="fas fa-user mr-2"></i>Last Name
-                                            </label>
-                                            <input type="text" name="last_name" required
-                                                class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                                placeholder="Last name">
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-white font-semibold">
-                                            <i class="fas fa-envelope mr-2"></i>Email Address
-                                        </label>
-                                        <input type="email" name="email" required
-                                            class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                            placeholder="Enter your email">
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-white font-semibold">
-                                            <i class="fas fa-lock mr-2"></i>Password
-                                        </label>
-                                        <input type="password" name="password" required
-                                            class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                            placeholder="Create a password">
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label class="block text-white font-semibold">
-                                            <i class="fas fa-lock mr-2"></i>Confirm Password
-                                        </label>
-                                        <input type="password" name="confirm_password" required
-                                            class="w-full px-4 py-3 rounded-xl border-0 bg-white bg-opacity-20 text-white placeholder-gray-300 input-focus transition-all duration-300"
-                                            placeholder="Confirm your password">
-                                    </div>
-
-                                    <div class="flex items-center">
-                                        <input type="checkbox" required class="mr-3 rounded">
-                                        <label class="text-white opacity-75 text-sm">
-                                            I agree to the <a href="#"
-                                                class="text-yellow-400 hover:text-yellow-300">Terms of Service</a>
-                                            and <a href="#" class="text-yellow-400 hover:text-yellow-300">Privacy
-                                                Policy</a>
-                                        </label>
-                                    </div>
-
-                                    <button type="submit"
-                                        class="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg transform hover:scale-105 transition-all duration-300">
-                                        <i class="fas fa-user-plus mr-2"></i>Create Account
-                                    </button>
-                                </form>
-                            </div>
-
-                            <!-- Social Login -->
-                            <div class="mt-8">
-                                <div class="relative">
-                                    <div class="absolute inset-0 flex items-center">
-                                        <div class="w-full border-t border-white border-opacity-30"></div>
-                                    </div>
-                                    <div class="relative flex justify-center text-sm">
-                                        <span class="px-4 bg-transparent text-white opacity-75">Or continue with</span>
-                                    </div>
-                                </div>
-
-                                <div class="mt-6 grid grid-cols-2 gap-3">
-                                    <button onclick="tryGoogleLogin()"
-                                        class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300"
-                                        id="googleLoginBtn">
-                                        <i class="fab fa-google mr-2"></i>Google
-                                    </button>
-                                    <button
-                                        class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 opacity-50 cursor-not-allowed"
-                                        disabled>
-                                        <i class="fab fa-facebook mr-2"></i>Facebook
-                                    </button>
-                                </div>
-                                
-
-                            </div>
-
-                            <!-- Demo Access -->
-                            <div class="mt-8 text-center">
-                                <p class="text-white opacity-75 mb-4">Want to try it first?</p>
-                                <button onclick="window.location.href='/demo'"
-                                    class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300">
-                                    <i class="fas fa-play mr-2"></i>Try Demo
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                            <div class="relative">
+                                <i
+                                    class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="password" id="loginPassword" required class="form-input w-full pl-12"
+                                    placeholder="••••••••••••">
+                                <button type="button" onclick="togglePassword('loginPassword')"
+                                    class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                    <i class="fas fa-eye" id="loginPasswordToggle"></i>
                                 </button>
                             </div>
                         </div>
+
+                        <button type="submit" class="auth-button" id="loginButton">
+                            <span id="loginButtonText">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                            </span>
+                            <div id="loginSpinner" class="loading-spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <p class="text-center text-gray-400 mt-6">
+                        Don't have an account?
+                        <button onclick="showRegisterForm()" class="toggle-link">Sign Up</button>
+                    </p>
+
+                    <p class="text-center mt-4">
+                        <a href="#" class="text-sm text-gray-400 hover:text-white">Forgot Password?</a>
+                    </p>
+
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="flex justify-center space-x-4">
+                        {% if google_oauth_enabled %}
+                        <a href="/auth/google" class="social-button" title="Sign in with Google">
+                            <i class="fab fa-google text-xl"></i>
+                        </a>
+                        {% endif %}
+                        <button class="social-button" title="Sign in with Facebook">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </button>
+                        <button class="social-button" title="Sign in with Twitter">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="hidden">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">Create Your Account.</h2>
+                        <p class="text-gray-400">Join thousands of users making smarter real estate decisions.</p>
+                    </div>
+
+                    <div id="registerError" class="error-message hidden"></div>
+                    <div id="registerSuccess" class="success-message hidden"></div>
+
+                    <form onsubmit="handleRegister(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+                            <div class="relative">
+                                <i
+                                    class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="registerName" required class="form-input w-full pl-12"
+                                    placeholder="John Doe">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                            <div class="relative">
+                                <i
+                                    class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="email" id="registerEmail" required class="form-input w-full pl-12"
+                                    placeholder="john@example.com">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                            <div class="relative">
+                                <i
+                                    class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="password" id="registerPassword" required class="form-input w-full pl-12"
+                                    placeholder="••••••••••••">
+                                <button type="button" onclick="togglePassword('registerPassword')"
+                                    class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                    <i class="fas fa-eye" id="registerPasswordToggle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="auth-button" id="registerButton">
+                            <span id="registerButtonText">
+                                <i class="fas fa-user-plus mr-2"></i>Create Account
+                            </span>
+                            <div id="registerSpinner" class="loading-spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <p class="text-center text-gray-400 mt-6">
+                        Already have an account?
+                        <button onclick="showLoginForm()" class="toggle-link">Sign In</button>
+                    </p>
+
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="flex justify-center space-x-4">
+                        {% if google_oauth_enabled %}
+                        <a href="/auth/google" class="social-button" title="Sign up with Google">
+                            <i class="fab fa-google text-xl"></i>
+                        </a>
+                        {% endif %}
+                        <button class="social-button" title="Sign up with Facebook">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </button>
+                        <button class="social-button" title="Sign up with Twitter">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -406,113 +362,79 @@
     </div>
 
     <script>
-        // Background slideshow functionality
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.background-slide');
-        const totalSlides = slides.length;
-
-        function changeBackground() {
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % totalSlides;
-            slides[currentSlide].classList.add('active');
+        // Form Toggle Functions
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            clearMessages();
         }
 
-        setInterval(changeBackground, 5000);
-
-        // Preload images
-        function preloadImages() {
-            const imageUrls = [
-                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-                'https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-                'https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-                'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-                'https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=2065&q=80',
-                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=2080&q=80'
-            ];
-
-            imageUrls.forEach(url => {
-                const img = new Image();
-                img.src = url;
-            });
+        function showLoginForm() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            clearMessages();
         }
 
-        window.addEventListener('load', preloadImages);
+        // Password Toggle
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(inputId + 'Toggle');
 
-        // Typing Effect Functionality
-        const words = ['Predictor', 'Analyzer'];
-        let currentWordIndex = 0;
-        let currentCharIndex = 0;
-        let isDeleting = false;
-        let typingSpeed = 150;
-        let deletingSpeed = 100;
-        let pauseTime = 2000;
-
-        function typeEffect() {
-            const typingText = document.getElementById('typingText');
-            const currentWord = words[currentWordIndex];
-            
-            if (isDeleting) {
-                // Deleting characters
-                typingText.textContent = currentWord.substring(0, currentCharIndex - 1);
-                currentCharIndex--;
-                
-                if (currentCharIndex === 0) {
-                    isDeleting = false;
-                    currentWordIndex = (currentWordIndex + 1) % words.length;
-                    setTimeout(typeEffect, 500); // Pause before typing next word
-                    return;
-                }
-                setTimeout(typeEffect, deletingSpeed);
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.classList.remove('fa-eye');
+                toggle.classList.add('fa-eye-slash');
             } else {
-                // Typing characters
-                typingText.textContent = currentWord.substring(0, currentCharIndex + 1);
-                currentCharIndex++;
-                
-                if (currentCharIndex === currentWord.length) {
-                    setTimeout(() => {
-                        isDeleting = true;
-                        typeEffect();
-                    }, pauseTime);
-                    return;
-                }
-                setTimeout(typeEffect, typingSpeed);
+                input.type = 'password';
+                toggle.classList.remove('fa-eye-slash');
+                toggle.classList.add('fa-eye');
             }
         }
 
-        // Start typing effect when page loads
-        window.addEventListener('load', () => {
-            setTimeout(typeEffect, 1000); // Start after 1 second
-        });
+        // Message Functions
+        function showError(formType, message) {
+            const errorDiv = document.getElementById(formType + 'Error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
 
-        // Tab switching functionality
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
+        function showSuccess(formType, message) {
+            const successDiv = document.getElementById(formType + 'Success');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+        }
 
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('active');
-            registerTab.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-        });
+        function clearMessages() {
+            ['loginError', 'loginSuccess', 'registerError', 'registerSuccess'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
 
-        registerTab.addEventListener('click', () => {
-            registerTab.classList.add('active');
-            loginTab.classList.remove('active');
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        });
+        // Loading State Functions
+        function setLoading(formType, isLoading) {
+            const button = document.getElementById(formType + 'Button');
+            const buttonText = document.getElementById(formType + 'ButtonText');
+            const spinner = document.getElementById(formType + 'Spinner');
 
-        // Form submissions
-        document.querySelector('#loginForm form').addEventListener('submit', async function (e) {
-            e.preventDefault();
+            button.disabled = isLoading;
 
-            const formData = new FormData(this);
-            const loginData = {
-                email: formData.get('email') || this.querySelector('input[type="email"]').value,
-                password: formData.get('password') || this.querySelector('input[type="password"]').value
-            };
+            if (isLoading) {
+                buttonText.classList.add('hidden');
+                spinner.classList.remove('hidden');
+            } else {
+                buttonText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            clearMessages();
+            setLoading('login', true);
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
             try {
                 const response = await fetch('/login', {
@@ -520,43 +442,42 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(loginData)
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    // Show success message and redirect to welcome splash
-                    showMessage('Login successful! Redirecting...', 'success');
+                    showSuccess('login', 'Login successful! Redirecting...');
                     setTimeout(() => {
-                        window.location.href = '/welcome';
-                    }, 1500);
+                        window.location.href = '/';
+                    }, 1000);
                 } else {
-                    showMessage(data.error || 'Login failed', 'error');
+                    showError('login', data.error || 'Login failed. Please try again.');
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                showError('login', 'Network error. Please check your connection and try again.');
+            } finally {
+                setLoading('login', false);
             }
-        });
+        }
 
-        document.querySelector('#registerForm form').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        // Handle Register
+        async function handleRegister(event) {
+            event.preventDefault();
+            clearMessages();
+            setLoading('register', true);
 
-            const formData = new FormData(this);
-            const password = this.querySelector('input[name="password"]').value;
-            const confirmPassword = this.querySelector('input[name="confirm_password"]').value;
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
 
-            if (password !== confirmPassword) {
-                showMessage('Passwords do not match', 'error');
+            // Basic validation
+            if (password.length < 6) {
+                showError('register', 'Password must be at least 6 characters long.');
+                setLoading('register', false);
                 return;
             }
-
-            const registerData = {
-                email: this.querySelector('input[type="email"]').value,
-                password: password,
-                first_name: this.querySelector('input[name="first_name"]').value,
-                last_name: this.querySelector('input[name="last_name"]').value
-            };
 
             try {
                 const response = await fetch('/register', {
@@ -564,60 +485,30 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(registerData)
+                    body: JSON.stringify({ name, email, password })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('Registration successful! Redirecting...', 'success');
+                    showSuccess('register', 'Account created successfully! Redirecting...');
                     setTimeout(() => {
-                        window.location.href = '/welcome';
-                    }, 1500);
+                        window.location.href = '/';
+                    }, 1000);
                 } else {
-                    showMessage(data.error || 'Registration failed', 'error');
+                    showError('register', data.error || 'Registration failed. Please try again.');
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                showError('register', 'Network error. Please check your connection and try again.');
+            } finally {
+                setLoading('register', false);
             }
+        }
+
+        // Auto-focus first input
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('loginEmail').focus();
         });
-
-        // Google OAuth function
-        function tryGoogleLogin() {
-            try {
-                showMessage('Redirecting to Google...', 'info');
-                window.location.href = '/auth/google';
-            } catch (error) {
-                showMessage('Google login is temporarily unavailable. Please try manual login.', 'error');
-            }
-        }
-
-        // Message display function
-        function showMessage(message, type) {
-            // Remove existing messages
-            const existingMessage = document.querySelector('.auth-message');
-            if (existingMessage) {
-                existingMessage.remove();
-            }
-
-            // Create new message
-            const messageDiv = document.createElement('div');
-            let bgColor = 'bg-red-500';
-            if (type === 'success') bgColor = 'bg-green-500';
-            if (type === 'info') bgColor = 'bg-blue-500';
-            
-            messageDiv.className = `auth-message fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${bgColor} text-white font-semibold`;
-            messageDiv.textContent = message;
-
-            document.body.appendChild(messageDiv);
-
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.remove();
-                }
-            }, 5000);
-        }
     </script>
 </body>
 

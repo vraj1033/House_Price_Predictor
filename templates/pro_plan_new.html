@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI House Predictor Pro - Lifetime License</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 70%);
+            position: relative;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 600;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #a1a1aa;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 4rem;
+        }
+
+        .pricing-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .plan-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .plan-card.popular {
+            border: 1px solid #4f46e5;
+            background: linear-gradient(135deg, #1a1a2e 0%, #1a1a1a 100%);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: #4f46e5;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .plan-type {
+            color: #4f46e5;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price-old {
+            color: #6b7280;
+            text-decoration: line-through;
+            font-size: 1.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .plan-description {
+            color: #a1a1aa;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .feature-icon {
+            color: #10b981;
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .feature-icon.disabled {
+            color: #ef4444;
+        }
+
+        .cta-button {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cta-button:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .cta-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 1px solid #374151;
+            color: #d1d5db;
+        }
+
+        .cta-button.secondary:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .pricing-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 1rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .back-button {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 2rem;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- Back Button -->
+        <a href="/" class="back-button">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Home
+        </a>
+
+        <div class="container mx-auto px-4 py-16">
+            <!-- Hero Section -->
+            <div class="text-center mb-16">
+                <div class="hero-icon">
+                    <i class="fas fa-home text-3xl text-white"></i>
+                </div>
+
+                <h1 class="hero-title">
+                    Get started with your lifetime license
+                </h1>
+
+                <p class="hero-subtitle">
+                    Enjoy unlimited property predictions with AI House Predictor and unlock the full potential
+                    of cutting-edge real estate analysis—all with a one-time lifetime license.
+                </p>
+            </div>
+
+            <!-- Pricing Cards -->
+            <div class="pricing-container">
+                <!-- Free Demo Card -->
+                <div class="plan-card">
+                    <div class="plan-type">Demo</div>
+                    <h2 class="plan-title">Free</h2>
+
+                    <p class="plan-description">
+                        Try the full AI House Predictor experience with all features unlocked. Perfect for testing
+                        before you buy.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Full feature access
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            All AI model integrations
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Photo analysis capability
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Market trend reports
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Interactive property maps
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-times feature-icon disabled"></i>
+                            Data is not saved between sessions
+                        </li>
+                    </ul>
+
+                    <button class="cta-button secondary" onclick="window.location.href='/predict-page'">
+                        <i class="fas fa-play mr-2"></i>
+                        Go to App
+                    </button>
+                </div>
+
+                <!-- Lifetime License Card -->
+                <div class="plan-card popular">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="plan-type">Lifetime License</div>
+                    <h2 class="plan-title">₹99 <span class="plan-price-old">₹149</span></h2>
+
+                    <p class="plan-description">
+                        One-time purchase for unlimited access, lifetime updates, and complete data control.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Everything in Free
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Data persistence across sessions
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            AI House Predictor Cloud sync
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Cross-device synchronization
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            5 device activations
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Lifetime updates
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Self-hosting option
+                        </li>
+                        <li class="feature-item">
+                            <i class="fas fa-check feature-icon"></i>
+                            Priority support
+                        </li>
+                    </ul>
+
+                    <button class="cta-button" onclick="initiatePayment('lifetime')" id="lifetime-btn">
+                        Get Started <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="text-center mt-12">
+                <p class="text-gray-400 text-sm">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Secure payments powered by Razorpay. Your data is protected with bank-level security.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initiatePayment(planType) {
+            const button = document.getElementById('lifetime-btn');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+            // Create payment order
+            fetch('/create-payment-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    plan_type: planType,
+                    amount: 9900, // ₹99 in paise
+                    currency: 'INR'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Initialize Razorpay payment
+                        const options = {
+                            key: data.key_id,
+                            amount: data.amount,
+                            currency: data.currency,
+                            name: 'AI House Predictor',
+                            description: 'Lifetime Pro License',
+                            order_id: data.order_id,
+                            prefill: {
+                                name: data.user_name,
+                                email: data.user_email
+                            },
+                            theme: {
+                                color: '#4f46e5'
+                            },
+                            handler: function (response) {
+                                // Payment successful, verify on server
+                                verifyPayment(response);
+                            },
+                            modal: {
+                                ondismiss: function () {
+                                    // Payment cancelled
+                                    resetButton(button);
+                                }
+                            }
+                        };
+
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                    } else {
+                        alert('Error: ' + data.error);
+                        resetButton(button);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Payment initialization failed. Please try again.');
+                    resetButton(button);
+                });
+        }
+
+        function verifyPayment(response) {
+            fetch('/verify-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_id: response.razorpay_payment_id,
+                    order_id: response.razorpay_order_id,
+                    signature: response.razorpay_signature
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to success page
+                        window.location.href = '/payment-success';
+                    } else {
+                        alert('Payment verification failed: ' + data.error);
+                        window.location.href = '/payment-failed';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Payment verification failed. Please contact support.');
+                    window.location.href = '/payment-failed';
+                });
+        }
+
+        function resetButton(button) {
+            button.disabled = false;
+            button.innerHTML = 'Get Started <i class="fas fa-arrow-right ml-2"></i>';
+        }
+    </script>
+</body>
+
+</html>

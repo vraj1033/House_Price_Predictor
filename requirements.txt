@@ -13,7 +13,7 @@ Authlib==1.2.1
 requests==2.31.0
 
 # Machine Learning (versions with guaranteed wheel support)
-numpy==2.1.3
+numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.5.2
 joblib==1.4.2
@@ -32,6 +32,10 @@ razorpay==1.4.2
 python-dotenv==1.0.0
 Pillow==10.4.0
 python-dateutil==2.8.2
+
+# PDF Generation
+reportlab==4.0.4
+matplotlib==3.7.2
 
 # Production Server
 gunicorn==21.2.0

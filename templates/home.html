@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI House Price Predictor - Future Housing</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='house.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-text {
+            font-size: clamp(2.5rem, 6vw, 6rem);
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .house-image {
+            position: absolute;
+            right: 5%;
+            top: 15%;
+            width: 300px;
+            height: auto;
+            opacity: 0.9;
+        }
+
+        .property-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #ff6b35;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .feature-icon {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Page entrance animations */
+        .page-enter {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: pageEnterAnimation 0.8s ease-out forwards;
+        }
+
+        .hero-enter {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+            animation: heroEnterAnimation 1s ease-out 0.2s forwards;
+        }
+
+        .nav-enter {
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: navEnterAnimation 0.6s ease-out 0.1s forwards;
+        }
+
+        .section-enter {
+            opacity: 0;
+            transform: translateY(40px);
+            animation: sectionEnterAnimation 0.8s ease-out forwards;
+        }
+
+        .stagger-1 {
+            animation-delay: 0.3s;
+        }
+
+        .stagger-2 {
+            animation-delay: 0.4s;
+        }
+
+        .stagger-3 {
+            animation-delay: 0.5s;
+        }
+
+        .stagger-4 {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes pageEnterAnimation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes heroEnterAnimation {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes navEnterAnimation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes sectionEnterAnimation {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Welcome back animation for logged in users */
+        .welcome-pulse {
+            animation: welcomePulse 2s ease-in-out;
+        }
+
+        @keyframes welcomePulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+            }
+        }
+
+        /* Smooth transitions for interactive elements */
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Loading state for smooth transitions */
+        .page-loading {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Header scroll animations */
+        .header-hidden {
+            transform: translateY(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .header-visible {
+            transform: translateY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Enhanced backdrop blur when scrolling */
+        .header-scrolled {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Hero image slideshow */
+        .hero-image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            height: 500px;
+            width: 100%;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+            transform: scale(1.1);
+        }
+
+        .hero-image:first-child {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .hero-image.active {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 2;
+        }
+
+        .hero-image.next {
+            opacity: 0;
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        /* Image indicators */
+        .image-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.2);
+        }
+
+        .indicator:hover {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Testimonials Section Styles */
+        .testimonials-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            padding: 20px 0;
+        }
+
+        .testimonial-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            width: max-content;
+            animation-duration: 60s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        .testimonial-row-right {
+            animation-name: scrollRight;
+        }
+
+        .testimonial-row-left {
+            animation-name: scrollLeft;
+        }
+
+        @keyframes scrollRight {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes scrollLeft {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 320px;
+            max-width: 320px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .testimonial-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .testimonial-card:nth-child(2n) {
+            animation-delay: -2s;
+        }
+
+        .testimonial-card:nth-child(3n) {
+            animation-delay: -4s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .stars {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .stars i {
+            color: #fbbf24;
+            font-size: 16px;
+        }
+
+        .testimonial-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Pause animation on hover */
+        .testimonials-container:hover .testimonial-row {
+            animation-play-state: paused;
+        }
+
+        /* Enhanced Scroll Animations */
+        .scroll-animate {
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .scroll-animate.animate {
+            opacity: 1;
+        }
+
+        /* Slide Up Animation */
+        .slide-up {
+            transform: translateY(60px);
+        }
+
+        .slide-up.animate {
+            transform: translateY(0);
+        }
+
+        /* Slide Left Animation */
+        .slide-left {
+            transform: translateX(-60px);
+        }
+
+        .slide-left.animate {
+            transform: translateX(0);
+        }
+
+        /* Slide Right Animation */
+        .slide-right {
+            transform: translateX(60px);
+        }
+
+        .slide-right.animate {
+            transform: translateX(0);
+        }
+
+        /* Scale Animation */
+        .scale-in {
+            transform: scale(0.8);
+        }
+
+        .scale-in.animate {
+            transform: scale(1);
+        }
+
+        /* Fade In Animation */
+        .fade-in {
+            opacity: 0;
+        }
+
+        .fade-in.animate {
+            opacity: 1;
+        }
+
+        /* Rotate In Animation */
+        .rotate-in {
+            transform: rotate(-10deg) scale(0.8);
+        }
+
+        .rotate-in.animate {
+            transform: rotate(0deg) scale(1);
+        }
+
+        /* Bounce In Animation */
+        .bounce-in {
+            transform: translateY(60px) scale(0.9);
+        }
+
+        .bounce-in.animate {
+            transform: translateY(0) scale(1);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Staggered Animation Delays */
+        .stagger-delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .stagger-delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .stagger-delay-4 {
+            transition-delay: 0.4s;
+        }
+
+        .stagger-delay-5 {
+            transition-delay: 0.5s;
+        }
+
+        .stagger-delay-6 {
+            transition-delay: 0.6s;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-black bg-opacity-50 backdrop-filter backdrop-blur-lg nav-enter">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="inhouse" class="h-12 w-auto">
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#about" class="nav-link">About Us</a>
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#contact" class="nav-link">Contact Us</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                    <!-- Pro Plan Link -->
+                    {% if current_user.is_pro_user() %}
+                    <a href="/pro-plan" class="nav-link text-green-400 hover:text-green-300">
+                        <i class="fas fa-crown mr-2 text-yellow-400"></i>Pro Active
+                    </a>
+                    {% else %}
+                    <a href="/pro-plan" class="nav-link text-yellow-400 hover:text-yellow-300">
+                        <i class="fas fa-crown mr-2"></i>Go Pro
+                    </a>
+                    {% endif %}
+                    <!-- Profile Dropdown -->
+                    <div class="relative" id="profileDropdown">
+                        <button onclick="toggleProfileDropdown()" class="hover:opacity-80 transition-opacity">
+                            <!-- Profile Avatar -->
+                            {% if current_user.avatar_url %}
+                            <img src="{{ current_user.avatar_url }}" alt="Profile"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer">
+                            {% else %}
+                            <div
+                                class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm border-2 border-white/20 hover:border-white/40 transition-colors cursor-pointer">
+                                {{ (current_user.name or 'U')[0].upper() }}
+                            </div>
+                            {% endif %}
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="dropdownMenu"
+                            class="absolute right-0 mt-2 w-80 bg-gray-900 bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-700 hidden">
+                            <div class="py-2">
+                                <!-- User Info -->
+                                <div class="px-4 py-3 border-b border-gray-700">
+                                    <div class="flex items-center">
+                                        {% if current_user.avatar_url %}
+                                        <img src="{{ current_user.avatar_url }}" alt="Profile"
+                                            class="w-10 h-10 rounded-full object-cover mr-3 border-2 border-white/10">
+                                        {% else %}
+                                        <div
+                                            class="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full flex items-center justify-center mr-3 text-white font-semibold border-2 border-white/10">
+                                            {{ (current_user.name or 'U')[0].upper() }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="flex-1">
+                                            <div class="flex items-center justify-between">
+                                                <p class="text-white font-semibold">{{ current_user.name or 'User' }}
+                                                </p>
+                                                {% if current_user.is_pro_user() %}
+                                                <span
+                                                    class="bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                                                    <i class="fas fa-crown mr-1"></i>PRO
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="text-gray-400 text-sm">{{ current_user.email }}</p>
+                                            {% if current_user.is_pro_user() %}
+                                            <p class="text-green-400 text-xs mt-1">
+                                                <i class="fas fa-check-circle mr-1"></i>Pro Active
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Menu Items -->
+                                <a href="/dashboard"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-tachometer-alt mr-3 w-4"></i>
+                                    Dashboard
+                                </a>
+
+                                <a href="/predict-page"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-calculator mr-3 w-4"></i>
+                                    Price Prediction
+                                </a>
+
+                                <a href="/photo-analyzer"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-camera mr-3 w-4"></i>
+                                    Photo Analysis
+                                </a>
+
+                                <a href="/map"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-map-marked-alt mr-3 w-4"></i>
+                                    Interactive Map
+                                </a>
+
+                                <a href="/chat"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-comments mr-3 w-4"></i>
+                                    AI Assistant
+                                </a>
+
+                                <div class="border-t border-gray-700 my-2"></div>
+
+                                <a href="#"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-cog mr-3 w-4"></i>
+                                    Settings
+                                </a>
+
+                                <a href="#"
+                                    class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-question-circle mr-3 w-4"></i>
+                                    Help & Support
+                                </a>
+
+                                <div class="border-t border-gray-700 my-2"></div>
+
+                                <a href="/logout"
+                                    class="flex items-center px-4 py-3 text-red-400 hover:text-red-300 hover:bg-gray-800 transition-colors">
+                                    <i class="fas fa-sign-out-alt mr-3 w-4"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/auth" class="login-btn">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section flex items-center hero-enter">
+        <div class="max-w-7xl mx-auto px-6 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div class="pr-0 lg:pr-12 max-w-2xl page-enter">
+                    <div class="hero-text mb-8">
+                        <div class="text-white">FUTURE</div>
+                        <div class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+                            HOUSING
+                        </div>
+                    </div>
+                    <p class="text-xl text-gray-300 mb-8 max-w-lg">
+                        Revolutionize your real estate decisions with AI-powered price predictions.
+                        Get instant, accurate property valuations using advanced machine learning and computer vision.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="/predict-page" class="cta-button">
+                            <i class="fas fa-calculator mr-2"></i>Start Predicting
+                        </a>
+                        <a href="#features"
+                            class="border border-white border-opacity-30 px-8 py-4 rounded-full hover:bg-white hover:bg-opacity-10 transition-all duration-300">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-image-container">
+                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Modern House" class="hero-image active" data-index="0">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Luxury Villa" class="hero-image" data-index="1">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Contemporary Home" class="hero-image" data-index="2">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Smart Home" class="hero-image" data-index="3">
+                    <img src="https://images.unsplash.com/photo-1605146769289-440113cc3d00?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Dream House" class="hero-image" data-index="4">
+
+                    <!-- Image Indicators -->
+                    <div class="image-indicators">
+                        <div class="indicator active" data-index="0"></div>
+                        <div class="indicator" data-index="1"></div>
+                        <div class="indicator" data-index="2"></div>
+                        <div class="indicator" data-index="3"></div>
+                        <div class="indicator" data-index="4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Property Showcase -->
+    <section class="py-20 scroll-animate slide-up">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="property-card p-8 scroll-animate slide-left stagger-delay-1">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                        alt="Luxury Villa" class="w-full h-64 object-cover rounded-2xl mb-6">
+                    <h3 class="text-2xl font-bold mb-4">Luxury Villas</h3>
+                    <p class="text-gray-300 mb-4">Experience premium living with our AI-analyzed luxury properties</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold text-blue-400">$2.5M+</span>
+                        <button class="bg-blue-600 px-6 py-2 rounded-full hover:bg-blue-700 transition-colors">
+                            Analyze
+                        </button>
+                    </div>
+                </div>
+
+                <div class="property-card p-8 scroll-animate slide-right stagger-delay-2">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                        alt="Modern Home" class="w-full h-64 object-cover rounded-2xl mb-6">
+                    <h3 class="text-2xl font-bold mb-4">Modern Homes</h3>
+                    <p class="text-gray-300 mb-4">Contemporary designs with smart technology integration</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold text-purple-400">$800K+</span>
+                        <button class="bg-purple-600 px-6 py-2 rounded-full hover:bg-purple-700 transition-colors">
+                            Analyze
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-black bg-opacity-30 scroll-animate fade-in">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16 scroll-animate slide-up">
+                <h2 class="text-5xl font-bold mb-6">Why Choose Our AI Predictor?</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Harness the power of artificial intelligence to make smarter real estate decisions
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center scroll-animate bounce-in stagger-delay-1">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">AI-Powered Analysis</h3>
+                    <p class="text-gray-300">
+                        Advanced machine learning algorithms analyze thousands of data points for accurate predictions
+                    </p>
+                </div>
+
+                <div class="text-center scroll-animate bounce-in stagger-delay-2">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Computer Vision</h3>
+                    <p class="text-gray-300">
+                        Upload property photos for enhanced analysis using cutting-edge image recognition
+                    </p>
+                </div>
+
+                <div class="text-center scroll-animate bounce-in stagger-delay-3">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Market Insights</h3>
+                    <p class="text-gray-300">
+                        Real-time market trends and comprehensive analytics for informed decision making
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-20 scroll-animate scale-in">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                <div class="scroll-animate rotate-in stagger-delay-1">
+                    <div class="stats-number">95%</div>
+                    <p class="text-gray-300 text-lg">Accuracy Rate</p>
+                </div>
+                <div class="scroll-animate rotate-in stagger-delay-2">
+                    <div class="stats-number">50K+</div>
+                    <p class="text-gray-300 text-lg">Properties Analyzed</p>
+                </div>
+                <div class="scroll-animate rotate-in stagger-delay-3">
+                    <div class="stats-number">10K+</div>
+                    <p class="text-gray-300 text-lg">Happy Users</p>
+                </div>
+                <div class="scroll-animate rotate-in stagger-delay-4">
+                    <div class="stats-number">24/7</div>
+                    <p class="text-gray-300 text-lg">AI Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-black bg-opacity-30 scroll-animate fade-in">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="scroll-animate slide-right">
+                    <h2 class="text-5xl font-bold mb-6">About Our Platform</h2>
+                    <p class="text-xl text-gray-300 mb-6">
+                        We're revolutionizing real estate with AI technology. Our platform combines machine learning,
+                        computer vision, and market analytics to provide the most accurate property valuations.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center scroll-animate slide-up stagger-delay-1">
+                            <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            <span>Multi-model ensemble AI for superior accuracy</span>
+                        </div>
+                        <div class="flex items-center scroll-animate slide-up stagger-delay-2">
+                            <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            <span>Real-time market data integration</span>
+                        </div>
+                        <div class="flex items-center scroll-animate slide-up stagger-delay-3">
+                            <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            <span>Advanced photo analysis capabilities</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll-animate slide-left">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="AI Technology" class="rounded-3xl shadow-2xl">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-black bg-opacity-20 section-enter overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6">Loved by users worldwide</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    See what our community says about their AI House Price Predictor experience.
+                </p>
+            </div>
+
+            <!-- Testimonials Container -->
+            <div class="testimonials-container">
+                <!-- Row 1 - Moving Right -->
+                <div class="testimonial-row testimonial-row-right">
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Love how I can upload photos and get instant property valuations.
+                            The AI accuracy is incredible!</p>
+                        <div class="testimonial-author">David</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Self-hosting this was easier than I thought. The predictions are
+                            spot-on for my local market.</p>
+                        <div class="testimonial-author">Rachel</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="testimonial-text">The background processing is lightning fast. I get results in
+                            seconds, not minutes.</p>
+                        <div class="testimonial-author">Alex</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Perfect for real estate professionals. The market insights are
+                            incredibly detailed.</p>
+                        <div class="testimonial-author">Sarah</div>
+                    </div>
+                </div>
+
+                <!-- Row 2 - Moving Left -->
+                <div class="testimonial-row testimonial-row-left">
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">The lifetime license was such a smart investment. No monthly fees,
+                            just pure value.</p>
+                        <div class="testimonial-author">Ryan</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Queue requests feature is brilliant. I can batch process multiple
+                            properties effortlessly.</p>
+                        <div class="testimonial-author">Lisa</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Having access to the API opens up so many automation possibilities
+                            for my business.</p>
+                        <div class="testimonial-author">Mohamed</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">The interactive map feature helps me explore neighborhoods like
+                            never before.</p>
+                        <div class="testimonial-author">Jennifer</div>
+                    </div>
+                </div>
+
+                <!-- Row 3 - Moving Right -->
+                <div class="testimonial-row testimonial-row-right">
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Works flawlessly on mobile. I can predict property values on the go
+                            during site visits.</p>
+                        <div class="testimonial-author">Nathan</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Support team is amazing. Quick responses and they actually solve
+                            problems.</p>
+                        <div class="testimonial-author">Emma</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="testimonial-text">The file parsing capabilities saved me hours of manual data entry
+                            work.</p>
+                        <div class="testimonial-author">Carlos</div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">Dark mode interface is beautiful and easy on the eyes during long
+                            analysis sessions.</p>
+                        <div class="testimonial-author">Michael</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-5xl font-bold mb-6">Ready to Get Started?</h2>
+            <p class="text-xl text-gray-300 mb-8">
+                Join thousands of users who trust our AI for their real estate decisions
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/predict-page" class="cta-button">
+                    <i class="fas fa-rocket mr-2"></i>Start Free Prediction
+                </a>
+                <a href="/pro-plan"
+                    class="border border-orange-500 text-orange-500 px-8 py-4 rounded-full hover:bg-orange-500 hover:text-white transition-all duration-300">
+                    <i class="fas fa-crown mr-2"></i>Upgrade to Pro
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black bg-opacity-50 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">
+                        <i class="fas fa-home mr-2"></i>AI House Predictor
+                    </h3>
+                    <p class="text-gray-400">
+                        The future of real estate valuation powered by artificial intelligence.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/predict-page" class="hover:text-white">Price Prediction</a></li>
+                        <li><a href="/photo-analyzer" class="hover:text-white">Photo Analysis</a></li>
+                        <li><a href="/map" class="hover:text-white">Interactive Map</a></li>
+                        <li><a href="/chat" class="hover:text-white">AI Assistant</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#about" class="hover:text-white">About Us</a></li>
+                        <li><a href="#contact" class="hover:text-white">Contact</a></li>
+                        <li><a href="/pro-plan" class="hover:text-white">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="mailto:vraj26304@gmail.com" class="text-gray-400 hover:text-white text-2xl"
+                            title="Email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a href="https://www.instagram.com/vraj103/" target="_blank"
+                            class="text-gray-400 hover:text-white text-2xl" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/vraj-patel-57a63a277/" target="_blank"
+                            class="text-gray-400 hover:text-white text-2xl" title="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://github.com/vraj1033" target="_blank"
+                            class="text-gray-400 hover:text-white text-2xl" title="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 AI House Price Predictor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <script>
+        // Pass server-side data to JavaScript
+
+
+        // Page entrance animations
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if user just logged in (from URL parameter or session storage)
+            const urlParams = new URLSearchParams(window.location.search);
+            const justLoggedIn = urlParams.get('login') === 'success' || sessionStorage.getItem('justLoggedIn');
+
+            // Clear the login flag
+            sessionStorage.removeItem('justLoggedIn');
+
+            // Add welcome animation for logged-in users
+            if (isAuthenticated && justLoggedIn) {
+                // Add special welcome animation for returning users
+                const profileButton = document.querySelector('#profileDropdown button');
+                if (profileButton) {
+                    setTimeout(() => {
+                        profileButton.classList.add('welcome-pulse');
+                        // Remove the animation class after it completes
+                        setTimeout(() => {
+                            profileButton.classList.remove('welcome-pulse');
+                        }, 2000);
+                    }, 1500);
+                }
+
+                // Show a subtle welcome message
+                showWelcomeMessage();
+            }
+
+            // Trigger entrance animations for all sections
+            triggerEntranceAnimations();
+
+            // Add smooth transitions to interactive elements
+            addSmoothTransitions();
+
+            // Initialize header scroll behavior
+            initHeaderScrollBehavior();
+
+            // Initialize hero image slideshow
+            initHeroImageSlideshow();
+        });
+
+        function showWelcomeMessage() {
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'fixed top-20 right-6 bg-gradient-to-r from-green-500 to-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500';
+            welcomeDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Welcome back, {{ current_user.name or 'User' }}!</span>
+                </div>
+            `;
+
+            document.body.appendChild(welcomeDiv);
+
+            // Slide in
+            setTimeout(() => {
+                welcomeDiv.classList.remove('translate-x-full');
+            }, 100);
+
+            // Slide out after 3 seconds
+            setTimeout(() => {
+                welcomeDiv.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(welcomeDiv);
+                }, 500);
+            }, 3000);
+        }
+
+        function triggerEntranceAnimations() {
+            // Add staggered animations to feature cards
+            const featureCards = document.querySelectorAll('.feature-icon').forEach((card, index) => {
+                card.parentElement.style.animationDelay = `${0.7 + (index * 0.1)}s`;
+                card.parentElement.classList.add('section-enter');
+            });
+
+            // Add staggered animations to stats
+            document.querySelectorAll('.stats-number').forEach((stat, index) => {
+                stat.parentElement.style.animationDelay = `${0.8 + (index * 0.1)}s`;
+                stat.parentElement.classList.add('section-enter');
+            });
+
+            // Add hover animations to property cards
+            document.querySelectorAll('.property-card').forEach(card => {
+                card.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-15px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(-10px) scale(1)';
+                });
+            });
+        }
+
+        function addSmoothTransitions() {
+            // Add smooth transitions to all interactive elements
+            const interactiveElements = document.querySelectorAll('button, a, .property-card, .feature-icon, .cta-button');
+            interactiveElements.forEach(element => {
+                element.classList.add('smooth-transition');
+            });
+
+            // Add special hover effects to CTA buttons
+            document.querySelectorAll('.cta-button').forEach(button => {
+                button.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-5px) scale(1.05)';
+                    this.style.boxShadow = '0 20px 40px rgba(102, 126, 234, 0.5)';
+                });
+
+                button.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(-3px) scale(1)';
+                    this.style.boxShadow = '0 15px 30px rgba(102, 126, 234, 0.4)';
+                });
+            });
+        }
+
+        // Enhanced Intersection Observer for scroll-triggered animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for scroll animations
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollElements = document.querySelectorAll('.scroll-animate');
+            scrollElements.forEach(element => {
+                scrollObserver.observe(element);
+            });
+        });
+
+        // Profile Dropdown Functions
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+
+            if (dropdown && !dropdown.contains(event.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Set login flag when redirecting to auth
+        document.querySelectorAll('a[href="/auth"]').forEach(link => {
+            link.addEventListener('click', function () {
+                sessionStorage.setItem('redirectedToAuth', 'true');
+            });
+        });
+
+        // Header scroll behavior
+        function initHeaderScrollBehavior() {
+            const header = document.querySelector('nav');
+            if (!header) {
+                console.log('Header not found');
+                return;
+            }
+
+            let lastScrollTop = 0;
+            let scrollThreshold = 100; // Minimum scroll distance before hiding header
+            let isHeaderVisible = true;
+            let ticking = false;
+
+            function updateHeader() {
+                const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                // Add scrolled class for enhanced backdrop blur
+                if (currentScrollTop > 50) {
+                    header.classList.add('header-scrolled');
+                } else {
+                    header.classList.remove('header-scrolled');
+                }
+
+                // Only hide/show header after scrolling past threshold
+                if (currentScrollTop > scrollThreshold) {
+                    if (currentScrollTop > lastScrollTop + 5 && isHeaderVisible) {
+                        // Scrolling down - hide header
+                        header.classList.remove('header-visible');
+                        header.classList.add('header-hidden');
+                        isHeaderVisible = false;
+                        console.log('Header hidden');
+                    } else if (currentScrollTop < lastScrollTop - 5 && !isHeaderVisible) {
+                        // Scrolling up - show header
+                        header.classList.remove('header-hidden');
+                        header.classList.add('header-visible');
+                        isHeaderVisible = true;
+                        console.log('Header shown');
+                    }
+                } else {
+                    // Always show header when near top
+                    if (!isHeaderVisible) {
+                        header.classList.remove('header-hidden');
+                        header.classList.add('header-visible');
+                        isHeaderVisible = true;
+                        console.log('Header shown (near top)');
+                    }
+                }
+
+                lastScrollTop = currentScrollTop;
+                ticking = false;
+            }
+
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateHeader);
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', requestTick, { passive: true });
+
+            // Initialize header as visible
+            header.classList.add('header-visible');
+            console.log('Header scroll behavior initialized');
+        }
+
+        // Hero image slideshow functionality
+        function initHeroImageSlideshow() {
+            console.log('Initializing hero image slideshow...');
+
+            const images = document.querySelectorAll('.hero-image');
+            const indicators = document.querySelectorAll('.indicator');
+
+            if (images.length === 0) {
+                console.log('No images found for slideshow');
+                return;
+            }
+
+            console.log('Found', images.length, 'images for slideshow');
+
+            let currentIndex = 0;
+            let slideInterval;
+
+            // Simple function to show image
+            function showImage(index) {
+                console.log('Showing image index:', index);
+
+                // Hide all images
+                for (let i = 0; i < images.length; i++) {
+                    images[i].style.opacity = '0';
+                    images[i].style.transform = 'scale(1.1)';
+                    images[i].style.zIndex = '1';
+                }
+
+                // Hide all indicators
+                for (let i = 0; i < indicators.length; i++) {
+                    indicators[i].classList.remove('active');
+                }
+
+                // Show current image
+                images[index].style.opacity = '1';
+                images[index].style.transform = 'scale(1)';
+                images[index].style.zIndex = '2';
+
+                // Show current indicator
+                if (indicators[index]) {
+                    indicators[index].classList.add('active');
+                }
+
+                currentIndex = index;
+            }
+
+            // Function to go to next image
+            function nextImage() {
+                const nextIndex = (currentIndex + 1) % images.length;
+                console.log('Moving to next image:', nextIndex);
+                showImage(nextIndex);
+            }
+
+            // Start slideshow
+            function startSlideshow() {
+                console.log('Starting slideshow...');
+                slideInterval = setInterval(nextImage, 3000); // 3 seconds
+            }
+
+            // Stop slideshow
+            function stopSlideshow() {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                    slideInterval = null;
+                    console.log('Slideshow stopped');
+                }
+            }
+
+            // Add click events to indicators
+            for (let i = 0; i < indicators.length; i++) {
+                indicators[i].addEventListener('click', function () {
+                    console.log('Indicator clicked:', i);
+                    stopSlideshow();
+                    showImage(i);
+                    setTimeout(startSlideshow, 1000);
+                });
+            }
+
+            // Hover events
+            const container = document.querySelector('.hero-image-container');
+            if (container) {
+                container.addEventListener('mouseenter', stopSlideshow);
+                container.addEventListener('mouseleave', startSlideshow);
+            }
+
+            // Initialize
+            showImage(0);
+
+            // Start after 2 seconds
+            setTimeout(function () {
+                console.log('Auto-starting slideshow...');
+                startSlideshow();
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

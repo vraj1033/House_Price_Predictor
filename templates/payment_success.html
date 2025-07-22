@@ -3,125 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Success - House Price Predictor</title>
+    <title>Payment Success - AI House Predictor</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #1a2e1a 0%, #0a0a0a 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .success-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
             width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-        }
-
-        .success-animation {
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
             animation: successPulse 2s ease-in-out infinite;
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
         }
 
         @keyframes successPulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
+        .success-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .success-subtitle {
+            color: #a1a1aa;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .features-unlocked {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .features-title {
+            color: #10b981;
+            font-size: 1.125rem;
             font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 0.875rem;
+        }
+
+        .feature-icon {
+            color: #10b981;
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .cta-button {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        .cta-button:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 1px solid #374151;
+            color: #d1d5db;
+        }
+
+        .cta-button.secondary:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .thank-you {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+        }
+
+        .countdown {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .success-card {
+                padding: 2rem;
+            }
+            
+            .success-title {
+                font-size: 2rem;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="background-container"></div>
-    
-    <div class="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-        <div class="glass-effect rounded-2xl p-12 text-center max-w-md w-full">
+    <div class="main-container">
+        <div class="success-card">
             <!-- Success Icon -->
-            <div class="success-animation text-green-400 mb-6">
-                <i class="fas fa-check-circle text-8xl"></i>
+            <div class="success-icon">
+                <i class="fas fa-check text-4xl text-white"></i>
             </div>
 
             <!-- Success Message -->
-            <h1 class="text-3xl font-bold text-white mb-4">
+            <h1 class="success-title">
                 Payment Successful! 🎉
             </h1>
             
-            <p class="text-white opacity-90 mb-6">
-                Congratulations! Your Pro subscription has been activated successfully.
+            <p class="success-subtitle">
+                Congratulations! Your AI House Predictor Pro license has been activated successfully.
             </p>
 
             <!-- Pro Features Unlocked -->
-            <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-semibold text-white mb-3">
+            <div class="features-unlocked">
+                <div class="features-title">
                     <i class="fas fa-crown text-yellow-400 mr-2"></i>
-                    Pro Features Unlocked
-                </h3>
-                <ul class="text-sm text-white opacity-80 space-y-1">
-                    <li><i class="fas fa-check text-green-400 mr-2"></i>Unlimited Predictions</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i>Advanced AI Analysis</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i>Market Reports</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i>Priority Support</li>
-                </ul>
+                    Lifetime Features Unlocked
+                </div>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Unlimited Predictions
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Data Persistence
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Cloud Sync
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Cross-device Access
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        5 Device Activations
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Lifetime Updates
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Self-hosting Option
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check feature-icon"></i>
+                        Priority Support
+                    </div>
+                </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="space-y-3">
-                <a href="/dashboard" class="btn-primary w-full">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    Go to Dashboard
-                </a>
-                
-                <a href="/" class="btn-primary w-full bg-opacity-50">
-                    <i class="fas fa-home mr-2"></i>
-                    Start Predicting
-                </a>
-            </div>
+            <a href="/dashboard" class="cta-button">
+                <i class="fas fa-chart-line mr-2"></i>
+                Go to Dashboard
+            </a>
+            
+            <a href="/predict-page" class="cta-button secondary">
+                <i class="fas fa-home mr-2"></i>
+                Start Predicting
+            </a>
 
             <!-- Thank You Note -->
-            <p class="text-white opacity-70 text-sm mt-6">
-                Thank you for choosing Pro! We're excited to help you make better property investment decisions.
+            <p class="thank-you">
+                Thank you for choosing AI House Predictor Pro! We're excited to help you make better property investment decisions with lifetime access to all features.
+            </p>
+
+            <!-- Countdown -->
+            <p class="countdown" id="countdown">
+                Redirecting to dashboard in 10 seconds...
             </p>
         </div>
     </div>
 
     <script>
         // Auto-redirect to dashboard after 10 seconds
-        setTimeout(() => {
-            window.location.href = '/dashboard';
-        }, 10000);
-
-        // Show countdown
         let countdown = 10;
-        const countdownElement = document.createElement('p');
-        countdownElement.className = 'text-white opacity-50 text-xs mt-4';
-        countdownElement.innerHTML = `Redirecting to dashboard in ${countdown} seconds...`;
-        document.querySelector('.glass-effect').appendChild(countdownElement);
+        const countdownElement = document.getElementById('countdown');
 
         const countdownInterval = setInterval(() => {
             countdown--;
-            countdownElement.innerHTML = `Redirecting to dashboard in ${countdown} seconds...`;
+            countdownElement.textContent = `Redirecting to dashboard in ${countdown} seconds...`;
             if (countdown <= 0) {
                 clearInterval(countdownInterval);
+                window.location.href = '/dashboard';
             }
         }, 1000);
     </script>

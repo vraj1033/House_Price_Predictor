@@ -3,116 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Failed - House Price Predictor</title>
+    <title>Payment Failed - AI House Predictor</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #2e1a1a 0%, #0a0a0a 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .failed-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
             width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+        .failed-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .failed-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .failed-subtitle {
+            color: #a1a1aa;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .reasons-section {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .reasons-title {
+            color: #ef4444;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .reason-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .reason-item {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 0.875rem;
+        }
+
+        .reason-icon {
+            color: #ef4444;
+            margin-right: 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .cta-button {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
             border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .cta-button:hover {
+            background: #4338ca;
             transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 1px solid #374151;
+            color: #d1d5db;
+        }
+
+        .cta-button.secondary:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .support-section {
+            background: rgba(107, 114, 128, 0.1);
+            border: 1px solid rgba(107, 114, 128, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .support-title {
+            color: #6b7280;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .support-text {
+            color: #9ca3af;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            .failed-card {
+                padding: 2rem;
+            }
+            
+            .failed-title {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="background-container"></div>
-    
-    <div class="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-        <div class="glass-effect rounded-2xl p-12 text-center max-w-md w-full">
+    <div class="main-container">
+        <div class="failed-card">
             <!-- Failed Icon -->
-            <div class="text-red-400 mb-6">
-                <i class="fas fa-times-circle text-8xl"></i>
+            <div class="failed-icon">
+                <i class="fas fa-times text-4xl text-white"></i>
             </div>
 
             <!-- Failed Message -->
-            <h1 class="text-3xl font-bold text-white mb-4">
+            <h1 class="failed-title">
                 Payment Failed
             </h1>
             
-            <p class="text-white opacity-90 mb-6">
+            <p class="failed-subtitle">
                 We couldn't process your payment. Don't worry, no charges were made to your account.
             </p>
 
             <!-- Common Reasons -->
-            <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-6 text-left">
-                <h3 class="text-lg font-semibold text-white mb-3">
-                    <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+            <div class="reasons-section">
+                <div class="reasons-title">
+                    <i class="fas fa-info-circle mr-2"></i>
                     Common Reasons
-                </h3>
-                <ul class="text-sm text-white opacity-80 space-y-1">
-                    <li><i class="fas fa-dot-circle text-red-400 mr-2"></i>Insufficient balance</li>
-                    <li><i class="fas fa-dot-circle text-red-400 mr-2"></i>Card expired or blocked</li>
-                    <li><i class="fas fa-dot-circle text-red-400 mr-2"></i>Network connectivity issue</li>
-                    <li><i class="fas fa-dot-circle text-red-400 mr-2"></i>Payment cancelled by user</li>
-                </ul>
+                </div>
+                <div class="reason-list">
+                    <div class="reason-item">
+                        <i class="fas fa-circle reason-icon"></i>
+                        Insufficient balance in your account
+                    </div>
+                    <div class="reason-item">
+                        <i class="fas fa-circle reason-icon"></i>
+                        Card expired or blocked by bank
+                    </div>
+                    <div class="reason-item">
+                        <i class="fas fa-circle reason-icon"></i>
+                        Network connectivity issue
+                    </div>
+                    <div class="reason-item">
+                        <i class="fas fa-circle reason-icon"></i>
+                        Payment cancelled by user
+                    </div>
+                    <div class="reason-item">
+                        <i class="fas fa-circle reason-icon"></i>
+                        Daily transaction limit exceeded
+                    </div>
+                </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="space-y-3">
-                <a href="/pro-plan" class="btn-primary w-full">
-                    <i class="fas fa-redo mr-2"></i>
-                    Try Again
-                </a>
-                
-                <a href="/" class="btn-secondary w-full">
-                    <i class="fas fa-home mr-2"></i>
-                    Back to Home
-                </a>
-            </div>
+            <a href="/pro-plan-new" class="cta-button">
+                <i class="fas fa-redo mr-2"></i>
+                Try Again
+            </a>
+            
+            <a href="/" class="cta-button secondary">
+                <i class="fas fa-home mr-2"></i>
+                Back to Home
+            </a>
 
-            <!-- Support Info -->
-            <div class="mt-6 p-4 bg-white bg-opacity-5 rounded-lg">
-                <p class="text-white opacity-70 text-sm mb-2">
+            <!-- Support Section -->
+            <div class="support-section">
+                <div class="support-title">
                     <i class="fas fa-headset mr-2"></i>
                     Need Help?
-                </p>
-                <p class="text-white opacity-60 text-xs">
-                    Contact our support team if you continue to face issues with payment.
+                </div>
+                <p class="support-text">
+                    Contact our support team if you continue to face issues with payment. We're here to help you get started with AI House Predictor Pro.
                 </p>
             </div>
         </div>
