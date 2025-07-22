@@ -13,7 +13,7 @@ Authlib==1.2.1
 requests==2.31.0
 
 # Machine Learning (versions with guaranteed wheel support)
-numpy==1.26.4
+numpy==2.1.0
 pandas==2.2.3
 scikit-learn==1.5.2
 joblib==1.4.2
