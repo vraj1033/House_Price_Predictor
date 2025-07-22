@@ -576,12 +576,18 @@ def load_model():
     """Load the trained model and scaler"""
     global model, scaler, ensemble_model
     
-    # Model URLs - you'll need to upload these to GitHub releases or another service
+    # Model URLs - will be available after GitHub release is created
     MODEL_URLS = {
         'house_price_ensemble.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/house_price_ensemble.pkl',
         'house_price_model.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/house_price_model.pkl',
         'scaler.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/scaler.pkl'
     }
+    
+    # For now, skip downloading and go straight to training for Vercel deployment
+    print("⚠️ Skipping model download for Vercel deployment - training new models...")
+    train_model()
+    train_ensemble_model()
+    return
     
     try:
         # Try to load ensemble model first
