@@ -557,27 +557,58 @@ model = None
 scaler = None
 ensemble_model = None
 
+def download_model_file(filename, url):
+    """Download model file if it doesn't exist locally"""
+    if not os.path.exists(filename):
+        try:
+            print(f"📥 Downloading {filename}...")
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+            print(f"✅ {filename} downloaded successfully")
+        except Exception as e:
+            print(f"⚠️ Failed to download {filename}: {e}")
+            return False
+    return True
+
 def load_model():
     """Load the trained model and scaler"""
     global model, scaler, ensemble_model
+    
+    # Model URLs - you'll need to upload these to GitHub releases or another service
+    MODEL_URLS = {
+        'house_price_ensemble.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/house_price_ensemble.pkl',
+        'house_price_model.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/house_price_model.pkl',
+        'scaler.pkl': 'https://github.com/vraj1033/House_Price_Predictor/releases/download/v1.0/scaler.pkl'
+    }
+    
     try:
         # Try to load ensemble model first
-        from ensemble_models import HousePriceEnsemble
-        ensemble_model = HousePriceEnsemble()
-        ensemble_model.load_ensemble('house_price_ensemble.pkl')
-        print("✅ Ensemble model loaded successfully")
-    except FileNotFoundError:
-        try:
-            # Fallback to single model
+        if download_model_file('house_price_ensemble.pkl', MODEL_URLS['house_price_ensemble.pkl']):
+            from ensemble_models import HousePriceEnsemble
+            ensemble_model = HousePriceEnsemble()
+            ensemble_model.load_ensemble('house_price_ensemble.pkl')
+            print("✅ Ensemble model loaded successfully")
+            return
+    except Exception as e:
+        print(f"⚠️ Ensemble model loading failed: {e}")
+    
+    try:
+        # Fallback to single model
+        if (download_model_file('house_price_model.pkl', MODEL_URLS['house_price_model.pkl']) and
+            download_model_file('scaler.pkl', MODEL_URLS['scaler.pkl'])):
             model = joblib.load('house_price_model.pkl')
             scaler = joblib.load('scaler.pkl')
             print("✅ Single model and scaler loaded successfully")
-        except FileNotFoundError:
-            print("⚠️  Model files not found. Training new models...")
-            # First, train the basic model and scaler to ensure fallback is ready
-            train_model()
-            # Then, train the advanced ensemble model
-            train_ensemble_model()
+            return
+    except Exception as e:
+        print(f"⚠️ Single model loading failed: {e}")
+    
+    # Last resort: train new models
+    print("⚠️ All model loading failed. Training new models...")
+    train_model()
+    train_ensemble_model()
 
 def train_model():
     """Train a new model with sample data"""

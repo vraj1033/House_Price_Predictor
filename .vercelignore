@@ -1,0 +1,25 @@
+# Large model files - will be downloaded at runtime
+*.pkl
+
+# Development files
+house_predictor_env/
+__pycache__/
+*.pyc
+.env
+.vscode/
+.git/
+
+# Database files
+*.db
+instance/
+
+# Test files
+test_*.py
+*_test.py
+
+# Documentation
+*.md
+!README.md
+
+# Large uploads directory
+static/uploads/*
